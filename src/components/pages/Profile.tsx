@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FaUserCircle, FaCog, FaSignOutAlt, FaShieldAlt, FaBell, FaDownload } from 'react-icons/fa';
+import { FaCog, FaSignOutAlt, FaShieldAlt, FaBell, FaDownload } from 'react-icons/fa';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
+import { CamelMascot } from '../ui/CamelMascot';
 
 export const Profile: React.FC = () => {
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default');
@@ -29,12 +30,14 @@ export const Profile: React.FC = () => {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="col-span-1 bg-white rounded-[32px] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col items-center justify-center min-h-[300px]">
-          <div className="w-32 h-32 bg-gradient-to-tr from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-5xl shadow-xl shadow-indigo-200 mb-6 border-4 border-white">
-            <FaUserCircle />
+        <div className="col-span-1 bg-white rounded-[32px] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col items-center justify-center min-h-[300px] relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-50 rounded-full blur-3xl -mr-20 -mt-20 opacity-60"></div>
+
+          <div className="w-40 h-40 shrink-0 relative z-10 drop-shadow-xl transition-transform hover:scale-105 duration-300 mb-4">
+             <CamelMascot />
           </div>
-          <h2 className="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight mb-1">John Doe</h2>
-          <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">user@example.com</p>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight mb-1 z-10">Inventory Camel</h2>
+          <p className="text-amber-500 font-bold uppercase tracking-widest text-sm z-10">Your Mascot</p>
         </div>
 
         <div className="col-span-1 md:col-span-2 bg-white rounded-[32px] p-4 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col gap-2">

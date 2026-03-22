@@ -4,6 +4,7 @@ import AddItem from './components/AddItem';
 import { HealthPlan, Profile, Notifications, Medicines } from './components';
 import { FaHome, FaHeartbeat, FaUserCircle, FaPlus, FaBell, FaPills, FaDownload } from 'react-icons/fa';
 import { usePWAInstall } from './hooks/usePWAInstall';
+import { AppLogo } from './components/ui/AppLogo';
 import './App.css';
 
 type ViewState = 'dashboard' | 'health' | 'profile' | 'add' | 'notifications' | 'medicines';
@@ -59,8 +60,9 @@ function App() {
       {/* Desktop Sidebar Navigation */}
       {currentView !== 'add' && (
         <aside className="hidden md:flex flex-col w-64 bg-white/80 backdrop-blur-xl border-r border-slate-100 shadow-[8px_0_30px_rgb(0,0,0,0.02)] z-50 h-[100dvh]">
-          <div className="p-8 pb-4">
-             <h1 className="text-3xl font-extrabold text-[#1a1b41] tracking-tight leading-none drop-shadow-sm">Inventory.</h1>
+          <div className="p-8 pb-4 flex items-center gap-3">
+             <AppLogo className="w-10 h-10 drop-shadow-md" />
+             <h1 className="text-3xl font-extrabold text-[#1a1b41] tracking-tight leading-none drop-shadow-sm">Invent.</h1>
           </div>
 
           <div className="flex-1 px-4 py-8 space-y-2">

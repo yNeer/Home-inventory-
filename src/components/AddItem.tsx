@@ -145,8 +145,12 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    let parsedValue: string | number = value;
+    if (type === 'number') {
+      parsedValue = value === '' ? '' : Number(value);
+    }
+    setFormData(prev => ({ ...prev, [name]: parsedValue }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -386,16 +390,45 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
 
           {formData.type === 'medicine' && (
             <div className="space-y-8">
-              <div className="bg-white rounded-[32px] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 space-y-4">
-                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Composition / Ingredients</label>
-                 <textarea
-                   name="components"
-                   value={formData.components || ''}
-                   onChange={handleChange as any}
-                   rows={3}
-                   placeholder="e.g. Paracetamol 500mg"
-                   className="w-full bg-slate-50/50 rounded-2xl px-5 py-4 text-slate-700 font-medium text-sm focus:outline-none focus:bg-indigo-50/30 focus:ring-2 focus:ring-indigo-100 transition-all border border-slate-100 resize-none"
-                 />
+              <div className="bg-white rounded-[32px] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 space-y-6">
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="relative">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Total Tablets</label>
+                      <input
+                        type="number"
+                        name="totalQuantity"
+                        value={formData.totalQuantity || ''}
+                        onChange={handleChange}
+                        placeholder="e.g. 30"
+                        min="1"
+                        className="w-full bg-slate-50/50 rounded-2xl px-5 py-4 text-slate-800 font-bold text-base focus:outline-none focus:bg-indigo-50/30 focus:ring-2 focus:ring-indigo-100 transition-all border border-slate-100"
+                      />
+                    </div>
+                    <div className="relative">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Daily Dose</label>
+                      <input
+                        type="number"
+                        name="dailyDose"
+                        value={formData.dailyDose || ''}
+                        onChange={handleChange}
+                        placeholder="e.g. 2"
+                        min="1"
+                        className="w-full bg-slate-50/50 rounded-2xl px-5 py-4 text-slate-800 font-bold text-base focus:outline-none focus:bg-indigo-50/30 focus:ring-2 focus:ring-indigo-100 transition-all border border-slate-100"
+                      />
+                    </div>
+                 </div>
+
+                 <div>
+                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Composition / Ingredients</label>
+                   <textarea
+                     name="components"
+                     value={formData.components || ''}
+                     onChange={handleChange as any}
+                     rows={3}
+                     placeholder="e.g. Paracetamol 500mg"
+                     className="w-full bg-slate-50/50 rounded-2xl px-5 py-4 text-slate-700 font-medium text-sm focus:outline-none focus:bg-indigo-50/30 focus:ring-2 focus:ring-indigo-100 transition-all border border-slate-100 resize-none"
+                   />
+                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

@@ -13,6 +13,8 @@ export interface InventoryItem {
   barcode?: string;
   reminderOption?: 'none' | 'daily' | 'weekly' | 'monthly';
   medicineTiming?: 'before_food' | 'after_food' | 'any';
+  totalQuantity?: number;
+  dailyDose?: number;
   image?: string;
 }
 
@@ -42,6 +44,10 @@ export class HomeInventoryDB extends Dexie {
        return tx.table('items').toCollection().modify(item => {
            if (item.medicineTiming === undefined) item.medicineTiming = 'any';
        });
+    });
+    // Version 4 Schema update: Added dosage properties
+    this.version(4).stores({
+      items: '++id, name, type, purchaseDate, mfgDate, expiryDate, price, batchNo, components, barcode, reminderOption, medicineTiming, totalQuantity, dailyDose, image'
     });
   }
 }
