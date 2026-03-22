@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { FaUserCircle, FaCog, FaSignOutAlt, FaShieldAlt, FaBell } from 'react-icons/fa';
+import { FaUserCircle, FaCog, FaSignOutAlt, FaShieldAlt, FaBell, FaDownload } from 'react-icons/fa';
+import { usePWAInstall } from '../../hooks/usePWAInstall';
 
 export const Profile: React.FC = () => {
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default');
+  const { isInstallable, installPWA } = usePWAInstall();
 
   useEffect(() => {
     if ('Notification' in window) {
@@ -48,6 +50,21 @@ export const Profile: React.FC = () => {
           </div>
           <span className="font-bold text-slate-700 flex-1">Privacy & Security</span>
         </button>
+
+        {isInstallable && (
+          <button
+            onClick={installPWA}
+            className="flex items-center gap-4 w-full p-4 rounded-[20px] hover:bg-slate-50 transition-colors text-left active:bg-slate-100 group"
+          >
+            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
+              <FaDownload size={18} />
+            </div>
+            <div className="flex flex-col flex-1">
+               <span className="font-bold text-slate-700">Install App</span>
+               <span className="text-xs font-medium text-slate-400">Add to Home Screen</span>
+            </div>
+          </button>
+        )}
 
         <button
           onClick={requestNotifs}

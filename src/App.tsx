@@ -2,7 +2,8 @@ import { useState } from 'react';
 import Dashboard from './components/Dashboard';
 import AddItem from './components/AddItem';
 import { HealthPlan, Profile, Notifications, Medicines } from './components';
-import { FaHome, FaHeartbeat, FaUserCircle, FaPlus, FaBell, FaPills } from 'react-icons/fa';
+import { FaHome, FaHeartbeat, FaUserCircle, FaPlus, FaBell, FaPills, FaDownload } from 'react-icons/fa';
+import { usePWAInstall } from './hooks/usePWAInstall';
 import './App.css';
 
 type ViewState = 'dashboard' | 'health' | 'profile' | 'add' | 'notifications' | 'medicines';
@@ -10,6 +11,7 @@ type ViewState = 'dashboard' | 'health' | 'profile' | 'add' | 'notifications' | 
 function App() {
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
   const [addItemType, setAddItemType] = useState<'grocery' | 'medicine'>('grocery');
+  const { isInstallable, installPWA } = usePWAInstall();
 
   const handleAddNew = (type: 'grocery' | 'medicine' = 'grocery') => {
     setAddItemType(type);
@@ -80,7 +82,16 @@ function App() {
             </button>
           </div>
 
-          <div className="p-6">
+          <div className="p-6 flex flex-col gap-3">
+            {isInstallable && (
+              <button
+                onClick={installPWA}
+                className="w-full h-14 bg-white text-blue-600 border-2 border-blue-100 rounded-2xl shadow-sm flex items-center justify-center gap-2 font-bold hover:bg-blue-50 transition-colors active:scale-95"
+              >
+                <FaDownload size={16} />
+                <span>Install App</span>
+              </button>
+            )}
             <button
               onClick={() => handleAddNew('grocery')}
               className="w-full h-16 bg-gradient-to-tr from-indigo-500 to-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-200 flex items-center justify-center gap-3 font-bold hover:bg-indigo-700 hover:-translate-y-1 transition-all active:scale-95"
