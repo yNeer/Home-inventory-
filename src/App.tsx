@@ -16,6 +16,22 @@ function App() {
     setCurrentView('add');
   };
 
+  // Read PWA Shortcut actions from URL
+  useState(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const action = searchParams.get('action');
+    if (action === 'scan_medicine') {
+      setCurrentView('add');
+      setAddItemType('medicine');
+    } else if (action === 'view_medicines') {
+      setCurrentView('medicines');
+    }
+    // Clean up URL so it doesn't stay in history
+    if (action) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  });
+
   const renderView = () => {
     switch (currentView) {
       case 'dashboard':

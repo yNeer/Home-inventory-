@@ -31,6 +31,29 @@ export default defineConfig({
             type: 'image/png',
             purpose: 'any maskable'
           }
+        ],
+        shortcuts: [
+          {
+            name: "Scan Medicine",
+            short_name: "Scan Meds",
+            description: "Quickly scan a new medicine label or barcode",
+            url: "/?action=scan_medicine",
+            icons: [{ src: "/pwa-192x192.png", sizes: "192x192" }]
+          },
+          {
+            name: "Expiring Soon",
+            short_name: "Expiring",
+            description: "View items that are expiring soon",
+            url: "/?action=view_expiring",
+            icons: [{ src: "/pwa-192x192.png", sizes: "192x192" }]
+          },
+          {
+            name: "Pharmacy",
+            short_name: "Pharmacy",
+            description: "Manage your medicines",
+            url: "/?action=view_medicines",
+            icons: [{ src: "/pwa-192x192.png", sizes: "192x192" }]
+          }
         ]
       }
     })
