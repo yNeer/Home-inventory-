@@ -15,20 +15,20 @@ export const processImageWithOCR = async (imageFile: File | Blob) => {
 
     // 3. Recognize
     const result = await worker.recognize(imageFile);
-    const text = result.data.text;
-    console.log("OCR Extracted Text (Advanced):", text);
+    const data = result.data;
+    console.log("OCR Extracted Text (Advanced):", data.text);
 
     // 4. Terminate worker
     await worker.terminate();
 
-    return parseOCRText(text);
+    return parseOCRData(data);
   } catch (error) {
     console.error("OCR Error:", error);
     throw error;
   }
 };
 
-const parseOCRText = (text: string) => {
+const parseOCRData = (data: Tesseract.Page) => {
   const result = {
     name: '',
     price: '',
@@ -38,20 +38,36 @@ const parseOCRText = (text: string) => {
     components: ''
   };
 
+  const text = data.text;
   const normalizedText = text.replace(/\n/g, ' ').replace(/\s+/g, ' ');
 
-  // Extract Name Heuristic: Look for the first prominent block of ALL CAPS or Title Case letters
-  // at the beginning of the text, avoiding common utility words
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 2);
-  const skipWords = ['mrp', 'price', 'mfg', 'exp', 'batch', 'net', 'weight', 'rs', 'use by'];
+  // Extract Name via Bounding Boxes: Find the line with the largest height (largest font)
+  // that looks like a name and isn't a utility block.
+  let bestNameCandidate = '';
+  let maxLineHeight = 0;
 
-  for (const line of lines) {
-    const isSkipWord = skipWords.some(w => line.toLowerCase().includes(w));
-    // If it's mostly letters, not too long, and doesn't contain utility keywords, assume it might be a product/brand name.
-    if (!isSkipWord && /^[A-Z][a-zA-Z\s]{3,30}$/i.test(line)) {
-       result.name = line;
-       break;
-    }
+  const skipWords = ['mrp', 'price', 'mfg', 'exp', 'batch', 'net', 'weight', 'rs', 'use by', 'inclusive', 'taxes', 'date', 'composition'];
+
+  for (const line of data.lines) {
+     const lineText = line.text.trim();
+     if (lineText.length < 3) continue;
+
+     const isSkipWord = skipWords.some(w => lineText.toLowerCase().includes(w));
+
+     // Only consider lines that have primarily letters and aren't purely dates/numbers
+     if (!isSkipWord && /[a-zA-Z]{3,}/.test(lineText) && lineText.length < 40) {
+        // Calculate height of the bounding box
+        const height = line.bbox.y1 - line.bbox.y0;
+        if (height > maxLineHeight) {
+           maxLineHeight = height;
+           // Clean up the name a bit
+           bestNameCandidate = lineText.replace(/[^a-zA-Z0-9\s&+-]/g, '').trim();
+        }
+     }
+  }
+
+  if (bestNameCandidate) {
+      result.name = bestNameCandidate;
   }
 
   // Enhanced Price Regex
@@ -80,8 +96,8 @@ const parseOCRText = (text: string) => {
      }
   }
 
-  // Common Date formats: DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY, MM/YYYY
-  const dateRegex = /\b(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})\b|\b(0[1-9]|1[0-2])[/\-.](\d{2,4})\b/g;
+  // Common Date formats: DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY, MM/YYYY, MM/YY, MM-YY
+  const dateRegex = /\b(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})\b|\b(0[1-9]|1[0-2])[/\-.](\d{2}|\d{4})\b/g;
   let match;
   const foundDates: { date: Date, raw: string, index: number }[] = [];
 
@@ -93,18 +109,25 @@ const parseOCRText = (text: string) => {
          const d = parseInt(match[1], 10);
          const m = parseInt(match[2], 10) - 1; // 0-indexed month
          let y = parseInt(match[3], 10);
-         if (y < 100) y += 2000;
+         // Guard against YY formats
+         if (y < 100) {
+            y += (y < 50 ? 2000 : 1900);
+         }
          dateObj = new Date(y, m, d);
      }
-     // MM/YYYY format
+     // MM/YYYY or MM/YY format
      else if (match[4] && match[5]) {
          const m = parseInt(match[4], 10) - 1;
          let y = parseInt(match[5], 10);
-         if (y < 100) y += 2000;
+         // Guard against YY formats (e.g. 10/24 -> Oct 2024)
+         if (y < 100) {
+            y += (y < 50 ? 2000 : 1900);
+         }
          dateObj = new Date(y, m, 1); // assume 1st of month
      }
 
-     if (dateObj && isValid(dateObj)) {
+     // Ensure we didn't parse a random price or number as a future weird year
+     if (dateObj && isValid(dateObj) && dateObj.getFullYear() > 1990 && dateObj.getFullYear() < 2100) {
         foundDates.push({ date: dateObj, raw: match[0], index: match.index });
      }
   }
