@@ -20,18 +20,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications }) => {
   };
 
   return (
-    <div className="min-h-full relative px-6 pt-safe pb-32">
+    <div className="min-h-full relative px-6 md:px-10 lg:px-12 pt-safe pb-32 w-full max-w-7xl mx-auto">
       {/* Dynamic Header */}
-      <header className="flex justify-between items-center mb-6 mt-6 sm:mt-8 z-20 relative">
+      <header className="flex justify-between items-center mb-8 mt-6 sm:mt-8 z-20 relative">
         <div className="flex flex-col">
           <span className="text-sm font-bold text-indigo-400 tracking-widest uppercase mb-1 drop-shadow-sm">Dashboard</span>
-          <h1 className="text-4xl font-extrabold text-[#1a1b41] tracking-tight leading-none drop-shadow-sm">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-[#1a1b41] tracking-tight leading-none drop-shadow-sm">
             Inventory.
           </h1>
         </div>
         <button
           onClick={onNotifications}
-          className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-400 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:text-indigo-500 transition-colors relative"
+          className="md:hidden w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-400 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:text-indigo-500 transition-colors relative"
         >
           <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white z-10"></div>
           <FaBell size={20} />
@@ -53,19 +53,26 @@ const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications }) => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
-         <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-[28px] p-5 text-white shadow-lg shadow-indigo-200 relative overflow-hidden">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-10">
+         <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-[28px] p-5 md:p-6 text-white shadow-lg shadow-indigo-200 relative overflow-hidden col-span-1 md:col-span-2">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -mr-10 -mt-10"></div>
-            <div className="relative z-10">
-               <div className="text-indigo-100 font-bold uppercase tracking-widest text-[10px] mb-2">Total Items</div>
-               <div className="text-4xl font-extrabold tracking-tight">{items ? items.length : 0}</div>
+            <div className="relative z-10 flex flex-col justify-between h-full">
+               <div className="text-indigo-100 font-bold uppercase tracking-widest text-[10px] md:text-xs mb-2">Total Items</div>
+               <div className="text-4xl md:text-5xl font-extrabold tracking-tight">{items ? items.length : 0}</div>
             </div>
          </div>
-         <div className="bg-white rounded-[28px] p-5 text-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative overflow-hidden">
+         <div className="bg-white rounded-[28px] p-5 md:p-6 text-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative overflow-hidden col-span-1">
             <div className="absolute bottom-0 right-0 w-24 h-24 bg-rose-100 opacity-50 rounded-full blur-2xl -mr-5 -mb-5"></div>
-            <div className="relative z-10">
-               <div className="text-rose-400 font-bold uppercase tracking-widest text-[10px] mb-2">Expiring</div>
-               <div className="text-4xl font-extrabold tracking-tight">0</div>
+            <div className="relative z-10 flex flex-col justify-between h-full">
+               <div className="text-rose-400 font-bold uppercase tracking-widest text-[10px] md:text-xs mb-2">Expiring</div>
+               <div className="text-4xl md:text-5xl font-extrabold tracking-tight">0</div>
+            </div>
+         </div>
+         <div className="hidden md:flex bg-white rounded-[28px] p-5 md:p-6 text-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative overflow-hidden col-span-1">
+            <div className="absolute bottom-0 right-0 w-24 h-24 bg-emerald-100 opacity-50 rounded-full blur-2xl -mr-5 -mb-5"></div>
+            <div className="relative z-10 flex flex-col justify-between h-full">
+               <div className="text-emerald-500 font-bold uppercase tracking-widest text-[10px] md:text-xs mb-2">Safe</div>
+               <div className="text-4xl md:text-5xl font-extrabold tracking-tight">{items ? items.length : 0}</div>
             </div>
          </div>
       </div>
@@ -103,11 +110,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications }) => {
         return (
           <div className="flex flex-col gap-6">
             <div className="flex justify-between items-end mb-2">
-               <h2 className="text-lg font-bold text-slate-800 tracking-tight">My Items</h2>
+               <h2 className="text-xl md:text-2xl font-bold text-slate-800 tracking-tight">My Items</h2>
             </div>
-            {filteredItems.map(item => (
-              <ItemCard key={item.id} item={item} onDelete={handleDelete} />
-            ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredItems.map(item => (
+                <ItemCard key={item.id} item={item} onDelete={handleDelete} />
+              ))}
+            </div>
           </div>
         );
       })()}

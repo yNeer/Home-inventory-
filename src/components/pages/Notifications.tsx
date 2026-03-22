@@ -3,21 +3,21 @@ import { FaBell, FaExclamationCircle, FaInfoCircle } from 'react-icons/fa';
 
 export const Notifications: React.FC = () => {
   return (
-    <div className="min-h-full px-6 pt-safe pb-32 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="min-h-full px-6 md:px-10 lg:px-12 pt-safe pb-32 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
       <header className="mb-10 mt-6 sm:mt-8 relative flex items-center justify-between">
         <div className="flex flex-col">
           <span className="text-sm font-bold text-rose-400 tracking-widest uppercase mb-1 drop-shadow-sm">Alerts</span>
-          <h1 className="text-4xl font-extrabold text-[#1a1b41] tracking-tight leading-none drop-shadow-sm">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-[#1a1b41] tracking-tight leading-none drop-shadow-sm">
             Notifications.
           </h1>
         </div>
-        <div className="w-12 h-12 bg-rose-50 rounded-full flex items-center justify-center text-rose-500 shadow-sm border border-rose-100">
-          <FaBell size={20} className="animate-pulse" />
+        <div className="w-12 h-12 md:w-16 md:h-16 bg-rose-50 rounded-full flex items-center justify-center text-rose-500 shadow-sm border border-rose-100">
+          <FaBell className="text-xl md:text-2xl animate-pulse" />
         </div>
       </header>
 
-      <div className="flex flex-col gap-4">
-        <div className="bg-rose-50 rounded-[28px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-rose-100 relative overflow-hidden group hover:scale-[1.01] transition-transform cursor-pointer">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="bg-rose-50 rounded-[28px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-rose-100 relative overflow-hidden group hover:-translate-y-1 transition-transform cursor-pointer col-span-1">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-rose-500 shadow-sm shrink-0">
               <FaExclamationCircle size={24} />
@@ -30,7 +30,7 @@ export const Notifications: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-indigo-50 rounded-[28px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-indigo-100 relative overflow-hidden group hover:scale-[1.01] transition-transform cursor-pointer">
+        <div className="bg-indigo-50 rounded-[28px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-indigo-100 relative overflow-hidden group hover:-translate-y-1 transition-transform cursor-pointer col-span-1">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-indigo-500 shadow-sm shrink-0">
               <FaInfoCircle size={24} />
@@ -43,8 +43,8 @@ export const Notifications: React.FC = () => {
           </div>
         </div>
 
-        <div className="text-center py-10">
-          <p className="text-sm text-slate-400 font-medium tracking-wide">You're all caught up!</p>
+        <div className="text-center py-10 col-span-1 md:col-span-2 lg:col-span-3">
+          <p className="text-sm text-slate-400 font-bold tracking-widest uppercase">You're all caught up!</p>
         </div>
       </div>
     </div>

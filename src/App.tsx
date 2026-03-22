@@ -28,17 +28,55 @@ function App() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full bg-[#F8F9FE] flex flex-col font-sans">
-      <div className="flex-1 w-full max-w-2xl mx-auto h-full relative shadow-2xl bg-white/40 pb-20">
+    <div className="min-h-[100dvh] w-full bg-[#F8F9FE] flex flex-col md:flex-row font-sans overflow-hidden">
 
-        {/* Main Content Area */}
-        <div className="h-full overflow-y-auto overflow-x-hidden">
+      {/* Desktop Sidebar Navigation */}
+      {currentView !== 'add' && (
+        <aside className="hidden md:flex flex-col w-64 bg-white/80 backdrop-blur-xl border-r border-slate-100 shadow-[8px_0_30px_rgb(0,0,0,0.02)] z-50 h-[100dvh]">
+          <div className="p-8 pb-4">
+             <h1 className="text-3xl font-extrabold text-[#1a1b41] tracking-tight leading-none drop-shadow-sm">Inventory.</h1>
+          </div>
+
+          <div className="flex-1 px-4 py-8 space-y-2">
+            <button onClick={() => setCurrentView('dashboard')} className={`flex items-center gap-4 w-full px-6 py-4 rounded-2xl font-bold transition-all ${currentView === 'dashboard' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}>
+              <FaHome size={20} className={currentView === 'dashboard' ? 'drop-shadow-sm' : ''} />
+              <span>Dashboard</span>
+            </button>
+            <button onClick={() => setCurrentView('health')} className={`flex items-center gap-4 w-full px-6 py-4 rounded-2xl font-bold transition-all ${currentView === 'health' ? 'bg-emerald-50 text-emerald-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}>
+              <FaHeartbeat size={20} className={currentView === 'health' ? 'drop-shadow-sm' : ''} />
+              <span>Health Plan</span>
+            </button>
+            <button onClick={() => setCurrentView('notifications')} className={`flex items-center gap-4 w-full px-6 py-4 rounded-2xl font-bold transition-all ${currentView === 'notifications' ? 'bg-rose-50 text-rose-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}>
+              <FaBell size={20} className={currentView === 'notifications' ? 'drop-shadow-sm' : ''} />
+              <span>Notifications</span>
+            </button>
+            <button onClick={() => setCurrentView('profile')} className={`flex items-center gap-4 w-full px-6 py-4 rounded-2xl font-bold transition-all ${currentView === 'profile' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}>
+              <FaUserCircle size={20} className={currentView === 'profile' ? 'drop-shadow-sm' : ''} />
+              <span>Profile</span>
+            </button>
+          </div>
+
+          <div className="p-6">
+            <button
+              onClick={() => setCurrentView('add')}
+              className="w-full h-16 bg-gradient-to-tr from-indigo-500 to-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-200 flex items-center justify-center gap-3 font-bold hover:bg-indigo-700 hover:-translate-y-1 transition-all active:scale-95"
+            >
+              <FaPlus size={18} />
+              <span>Scan Item</span>
+            </button>
+          </div>
+        </aside>
+      )}
+
+      {/* Main Content Area */}
+      <main className="flex-1 w-full h-[100dvh] relative bg-transparent flex flex-col">
+        <div className={`flex-1 overflow-y-auto overflow-x-hidden ${currentView !== 'add' ? 'pb-24 md:pb-0' : ''}`}>
           {renderView()}
         </div>
 
-        {/* Global Bottom Navigation Bar */}
+        {/* Mobile Bottom Navigation Bar */}
         {currentView !== 'add' && (
-          <nav className="fixed bottom-0 left-0 right-0 w-full max-w-2xl mx-auto bg-white/80 backdrop-blur-xl border-t border-slate-100 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] pb-safe z-50">
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 w-full bg-white/80 backdrop-blur-xl border-t border-slate-100 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] pb-safe z-50">
             <div className="flex items-center justify-around h-20 px-4">
               <button
                 onClick={() => setCurrentView('dashboard')}
@@ -85,7 +123,7 @@ function App() {
             </div>
           </nav>
         )}
-      </div>
+      </main>
     </div>
   );
 }

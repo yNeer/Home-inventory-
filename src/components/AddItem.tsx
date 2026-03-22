@@ -72,24 +72,27 @@ const AddItem: React.FC<AddItemProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-full bg-[#F8F9FE] flex flex-col pb-[120px] selection:bg-indigo-300">
+    <div className="min-h-full bg-[#F8F9FE] flex flex-col pb-[120px] md:pb-12 selection:bg-indigo-300 relative w-full h-full overflow-y-auto">
       {/* Dynamic Header */}
-      <header className="bg-white/80 backdrop-blur-2xl px-6 pt-safe py-4 shadow-[0_4px_30px_rgb(0,0,0,0.02)] border-b border-white flex items-center justify-between sticky top-0 z-50">
+      <header className="bg-white/80 backdrop-blur-2xl px-6 md:px-10 pt-safe py-4 shadow-[0_4px_30px_rgb(0,0,0,0.02)] border-b border-white flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-4 mt-2 sm:mt-6">
-           <button onClick={onBack} className="w-12 h-12 -ml-3 rounded-full flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 active:scale-95 transition-all">
+           <button onClick={onBack} className="w-12 h-12 -ml-3 rounded-full flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 active:scale-95 transition-all md:hidden">
              <FaArrowLeft size={18} />
            </button>
-           <h2 className="text-2xl font-extrabold text-[#1a1b41] tracking-tight">Add Item</h2>
+           <h2 className="text-2xl md:text-3xl font-extrabold text-[#1a1b41] tracking-tight">Add Item</h2>
         </div>
-        <button onClick={handleSubmit} disabled={loading} className="w-12 h-12 mt-2 sm:mt-6 rounded-full bg-gradient-to-tr from-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50">
+        <button onClick={handleSubmit} disabled={loading} className="hidden md:flex items-center gap-2 mt-2 sm:mt-6 rounded-2xl px-6 py-3 bg-gradient-to-tr from-indigo-500 to-indigo-600 text-white font-bold shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50">
+           <FaCheck size={16} /> Save Item
+        </button>
+        <button onClick={handleSubmit} disabled={loading} className="md:hidden w-12 h-12 mt-2 sm:mt-6 rounded-full bg-gradient-to-tr from-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50">
            <FaCheck size={16} />
         </button>
       </header>
 
-      <form onSubmit={handleSubmit} className="px-6 py-8 space-y-8 flex-1 mt-2">
+      <form onSubmit={handleSubmit} className="px-6 md:px-10 py-8 md:py-12 flex-1 mt-2 max-w-5xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
 
         {/* Soft UI Image Upload Card */}
-        <div className="relative group overflow-hidden bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col items-center justify-center min-h-[220px] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all cursor-pointer">
+        <div className="relative group overflow-hidden bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col items-center justify-center min-h-[220px] md:min-h-[400px] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all cursor-pointer col-span-1">
             <input
               type="file"
               accept="image/*"
@@ -119,9 +122,13 @@ const AddItem: React.FC<AddItemProps> = ({ onBack }) => {
             )}
         </div>
 
-        {/* Inputs section */}
-        <div className="bg-white rounded-[32px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 space-y-6">
-          <div className="relative">
+        <div className="space-y-8 col-span-1">
+          {/* Inputs section */}
+          <div className="bg-white rounded-[32px] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 space-y-6">
+          </div>
+
+          <div className="bg-white rounded-[32px] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 space-y-6">
+            <div className="relative">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Product Name</label>
             <input
               type="text"
@@ -196,13 +203,13 @@ const AddItem: React.FC<AddItemProps> = ({ onBack }) => {
                  onChange={handleChange}
                  className="w-full bg-slate-50/50 rounded-2xl px-5 py-4 text-slate-800 font-bold text-[13px] sm:text-base focus:outline-none focus:bg-indigo-50/30 focus:ring-2 focus:ring-indigo-100 transition-all border border-slate-100"
                />
-             </div>
+               </div>
+            </div>
           </div>
-        </div>
 
-        {formData.type === 'medicine' && (
-          <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-[32px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-rose-100/50 space-y-4 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-40 rounded-full blur-2xl -mr-10 -mt-10"></div>
+          {formData.type === 'medicine' && (
+            <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-[32px] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-rose-100/50 space-y-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-40 rounded-full blur-2xl -mr-10 -mt-10"></div>
             <label className="text-[11px] font-extrabold text-rose-800 flex items-center gap-2 uppercase tracking-widest relative z-10">
                <span className="text-[14px]">🔔</span> Reminder
             </label>
@@ -214,11 +221,12 @@ const AddItem: React.FC<AddItemProps> = ({ onBack }) => {
             >
               <option value="none">Off</option>
               <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
-          </div>
-        )}
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+          )}
+        </div>
 
       </form>
     </div>
