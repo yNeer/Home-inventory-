@@ -91,17 +91,6 @@ export const Medicines: React.FC<MedicinesProps> = ({ onAddNew }) => {
         );
       })()}
 
-      {/* Mobile Floating Action Button (if not empty state) */}
-      {items && items.length > 0 && (
-         <button
-           onClick={() => onAddNew('medicine')}
-           className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-gradient-to-tr from-rose-400 to-rose-500 text-white rounded-full shadow-lg shadow-rose-200 flex items-center justify-center hover:scale-105 transition-all active:scale-95 z-40 border-2 border-white"
-           aria-label="Add new medicine"
-         >
-           <FaPlus size={20} />
-         </button>
-      )}
-
     </div>
   );
 };
