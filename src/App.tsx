@@ -5,24 +5,12 @@ import { BottomNavigation } from './components/layout/BottomNavigation';
 import './App.css';
 
 function App() {
-  const [currentView, setCurrentView] = useState('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'add'>('dashboard');
 
   return (
     <div className="h-[100dvh] w-full bg-[#1a1b41] flex items-center justify-center font-sans sm:p-4 md:p-8">
       {/* Mobile Device Container (Phone Shell for Desktop Preview) */}
       <div className="w-full h-full sm:max-w-[428px] sm:max-h-[926px] bg-[#F8F9FE] sm:rounded-[55px] shadow-[0_30px_100px_rgb(0,0,0,0.5)] flex flex-col relative overflow-hidden ring-[14px] ring-[#1a1b41] sm:border-[8px] sm:border-black/10">
-
-        {/* Dynamic Island / Notch Simulation */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-black rounded-b-3xl z-[100] hidden sm:block"></div>
-
-        {/* Status Bar */}
-        <div className="w-full h-12 bg-transparent absolute top-0 z-[90] flex justify-between px-6 text-[13px] font-bold text-slate-800 items-center">
-          <span className="pt-2">9:41</span>
-          <div className="flex gap-2 items-center pt-2">
-            <span>📶</span>
-            <span>🔋</span>
-          </div>
-        </div>
 
         <div className="flex-1 overflow-y-auto no-scrollbar relative w-full h-full">
           {currentView === 'dashboard' ? (

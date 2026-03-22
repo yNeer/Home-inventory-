@@ -1,7 +1,12 @@
 import React from 'react';
 import { FaHome, FaHeart, FaPlus, FaCalendarAlt, FaUser } from 'react-icons/fa';
 
-export const BottomNavigation = ({ currentView, onNavigate }) => {
+interface BottomNavigationProps {
+  currentView: 'dashboard' | 'add';
+  onNavigate: (view: 'dashboard' | 'add') => void;
+}
+
+export const BottomNavigation: React.FC<BottomNavigationProps> = ({ currentView, onNavigate }) => {
   return (
     <div className="absolute bottom-0 w-full h-[88px] bg-white/90 backdrop-blur-2xl border-t border-gray-100 flex justify-around items-start pt-3 px-6 pb-safe shadow-[0_-8px_30px_rgba(0,0,0,0.04)] z-40 rounded-t-[32px]">
       <button

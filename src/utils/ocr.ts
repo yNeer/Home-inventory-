@@ -1,7 +1,7 @@
 import Tesseract from 'tesseract.js';
 import { isValid, format } from 'date-fns';
 
-export const processImageWithOCR = async (imageFile) => {
+export const processImageWithOCR = async (imageFile: File | Blob) => {
   try {
     const result = await Tesseract.recognize(imageFile, 'eng', {
       logger: m => console.log(m)
@@ -16,7 +16,7 @@ export const processImageWithOCR = async (imageFile) => {
   }
 };
 
-const parseOCRText = (text) => {
+const parseOCRText = (text: string) => {
   const result = {
     price: '',
     mfgDate: '',
@@ -33,7 +33,7 @@ const parseOCRText = (text) => {
   // Basic Date Regex DD/MM/YYYY or MM/DD/YYYY or DD-MM-YYYY
   const dateRegex = /\b(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})\b/g;
   let match;
-  const dates = [];
+  const dates: Date[] = [];
 
   while ((match = dateRegex.exec(text)) !== null) {
      // Try to parse the date as DD/MM/YYYY or DD-MM-YYYY
@@ -57,7 +57,7 @@ const parseOCRText = (text) => {
 
   // Heuristic: If we found dates, earlier is mfg, later is expiry.
   if (dates.length >= 2) {
-      dates.sort((a, b) => a - b);
+      dates.sort((a, b) => a.getTime() - b.getTime());
       result.mfgDate = format(dates[0], 'yyyy-MM-dd');
       result.expiryDate = format(dates[dates.length - 1], 'yyyy-MM-dd');
   } else if (dates.length === 1) {

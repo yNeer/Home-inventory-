@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { db } from '../db';
+import { db, InventoryItem } from '../db';
 import { processImageWithOCR } from '../utils/ocr';
 import { FaCamera, FaSpinner, FaArrowLeft, FaCheck } from 'react-icons/fa';
 
-const AddItem = ({ onBack }) => {
+interface AddItemProps {
+  onBack: () => void;
+}
+
+const AddItem: React.FC<AddItemProps> = ({ onBack }) => {
   const [loading, setLoading] = useState(false);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [formData, setFormData] = useState({
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [formData, setFormData] = useState<Omit<InventoryItem, 'id'>>({
     name: '',
     type: 'grocery',
     price: '',
@@ -16,13 +20,13 @@ const AddItem = ({ onBack }) => {
     reminderOption: 'none'
   });
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      setImagePreview(reader.result);
+      setImagePreview(reader.result as string);
     };
     reader.readAsDataURL(file);
 
@@ -43,12 +47,12 @@ const AddItem = ({ onBack }) => {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name) {
       alert("Please enter a product name.");
@@ -58,7 +62,7 @@ const AddItem = ({ onBack }) => {
     try {
       await db.items.add({
         ...formData,
-        image: imagePreview
+        image: imagePreview || undefined
       });
       onBack();
     } catch (error) {
@@ -70,14 +74,14 @@ const AddItem = ({ onBack }) => {
   return (
     <div className="min-h-full bg-[#F8F9FE] flex flex-col pb-[120px] selection:bg-indigo-300">
       {/* Dynamic Header */}
-      <header className="bg-white/80 backdrop-blur-2xl px-6 py-6 shadow-[0_4px_30px_rgb(0,0,0,0.02)] border-b border-white flex items-center justify-between sticky top-0 z-50">
-        <div className="flex items-center gap-4">
+      <header className="bg-white/80 backdrop-blur-2xl px-6 pt-safe py-4 shadow-[0_4px_30px_rgb(0,0,0,0.02)] border-b border-white flex items-center justify-between sticky top-0 z-50">
+        <div className="flex items-center gap-4 mt-2 sm:mt-6">
            <button onClick={onBack} className="w-12 h-12 -ml-3 rounded-full flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 active:scale-95 transition-all">
              <FaArrowLeft size={18} />
            </button>
            <h2 className="text-2xl font-extrabold text-[#1a1b41] tracking-tight">Add Item</h2>
         </div>
-        <button onClick={handleSubmit} disabled={loading} className="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50">
+        <button onClick={handleSubmit} disabled={loading} className="w-12 h-12 mt-2 sm:mt-6 rounded-full bg-gradient-to-tr from-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50">
            <FaCheck size={16} />
         </button>
       </header>

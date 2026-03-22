@@ -4,19 +4,19 @@ import { db } from '../db';
 import { FaBoxOpen, FaSearch, FaBell } from 'react-icons/fa';
 import { ItemCard } from './cards/ItemCard';
 
-const Dashboard = () => {
+const Dashboard: React.FC = () => {
   const items = useLiveQuery(() => db.items.toArray(), []);
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this item?')) {
       await db.items.delete(id);
     }
   };
 
   return (
-    <div className="h-full relative px-6 pt-12 pb-32 bg-[#F8F9FE] selection:bg-indigo-300">
+    <div className="h-full relative px-6 pt-safe pb-32 bg-[#F8F9FE] selection:bg-indigo-300">
       {/* Dynamic Header */}
-      <header className="flex justify-between items-center mb-10 z-20 relative">
+      <header className="flex justify-between items-center mb-10 mt-6 sm:mt-8 z-20 relative">
         <div className="flex flex-col">
           <span className="text-sm font-bold text-indigo-400 tracking-widest uppercase mb-1 drop-shadow-sm">Dashboard</span>
           <h1 className="text-4xl font-extrabold text-[#1a1b41] tracking-tight leading-none drop-shadow-sm">

@@ -1,9 +1,15 @@
 import React from 'react';
 import { format, isBefore, addDays } from 'date-fns';
 import { FaBox, FaPills, FaTrash, FaExclamationCircle, FaRegClock } from 'react-icons/fa';
+import { InventoryItem } from '../../db';
 
-export const ItemCard = ({ item, onDelete }) => {
-  const getStatus = (expiryDate) => {
+interface ItemCardProps {
+  item: InventoryItem;
+  onDelete: (id: number) => void;
+}
+
+export const ItemCard: React.FC<ItemCardProps> = ({ item, onDelete }) => {
+  const getStatus = (expiryDate?: string) => {
     if (!expiryDate) return { color: 'gray', text: 'No Expiry', bg: 'bg-gray-100', textCol: 'text-gray-500' };
     const expiry = new Date(expiryDate);
     const now = new Date();
@@ -36,7 +42,7 @@ export const ItemCard = ({ item, onDelete }) => {
         </div>
 
         <button
-          onClick={() => onDelete(item.id)}
+          onClick={() => item.id && onDelete(item.id)}
           className="w-10 h-10 flex items-center justify-center rounded-full text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all active:scale-95"
           aria-label="Delete item"
         >
