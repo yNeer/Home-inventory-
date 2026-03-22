@@ -1,29 +1,90 @@
 import { useState } from 'react';
 import Dashboard from './components/Dashboard';
 import AddItem from './components/AddItem';
-import { BottomNavigation } from './components/layout/BottomNavigation';
+import { HealthPlan, Profile, Notifications } from './components';
+import { FaHome, FaHeartbeat, FaUserCircle, FaPlus, FaBell } from 'react-icons/fa';
 import './App.css';
 
+type ViewState = 'dashboard' | 'health' | 'profile' | 'add' | 'notifications';
+
 function App() {
-  const [currentView, setCurrentView] = useState<'dashboard' | 'add'>('dashboard');
+  const [currentView, setCurrentView] = useState<ViewState>('dashboard');
+
+  const renderView = () => {
+    switch (currentView) {
+      case 'dashboard':
+        return <Dashboard onAddNew={() => setCurrentView('add')} onNotifications={() => setCurrentView('notifications')} />;
+      case 'health':
+        return <HealthPlan />;
+      case 'profile':
+        return <Profile />;
+      case 'notifications':
+        return <Notifications />;
+      case 'add':
+        return <AddItem onBack={() => setCurrentView('dashboard')} />;
+      default:
+        return <Dashboard onAddNew={() => setCurrentView('add')} onNotifications={() => setCurrentView('notifications')} />;
+    }
+  };
 
   return (
-    <div className="h-[100dvh] w-full bg-[#1a1b41] flex items-center justify-center font-sans sm:p-4 md:p-8">
-      {/* Mobile Device Container (Phone Shell for Desktop Preview) */}
-      <div className="w-full h-full sm:max-w-[428px] sm:max-h-[926px] bg-[#F8F9FE] sm:rounded-[55px] shadow-[0_30px_100px_rgb(0,0,0,0.5)] flex flex-col relative overflow-hidden ring-[14px] ring-[#1a1b41] sm:border-[8px] sm:border-black/10">
+    <div className="min-h-[100dvh] w-full bg-[#F8F9FE] flex flex-col font-sans">
+      <div className="flex-1 w-full max-w-2xl mx-auto h-full relative shadow-2xl bg-white/40 pb-20">
 
-        <div className="flex-1 overflow-y-auto no-scrollbar relative w-full h-full">
-          {currentView === 'dashboard' ? (
-            <Dashboard />
-          ) : (
-            <AddItem onBack={() => setCurrentView('dashboard')} />
-          )}
+        {/* Main Content Area */}
+        <div className="h-full overflow-y-auto overflow-x-hidden">
+          {renderView()}
         </div>
 
-        <BottomNavigation currentView={currentView} onNavigate={setCurrentView} />
+        {/* Global Bottom Navigation Bar */}
+        {currentView !== 'add' && (
+          <nav className="fixed bottom-0 left-0 right-0 w-full max-w-2xl mx-auto bg-white/80 backdrop-blur-xl border-t border-slate-100 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] pb-safe z-50">
+            <div className="flex items-center justify-around h-20 px-4">
+              <button
+                onClick={() => setCurrentView('dashboard')}
+                className={`flex flex-col items-center justify-center w-16 h-16 rounded-2xl transition-all ${currentView === 'dashboard' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                <FaHome size={24} className={currentView === 'dashboard' ? 'scale-110 drop-shadow-sm' : ''} />
+                <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">Home</span>
+              </button>
 
-        {/* Home Indicator */}
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-slate-300 rounded-full z-[100]"></div>
+              <button
+                onClick={() => setCurrentView('health')}
+                className={`flex flex-col items-center justify-center w-16 h-16 rounded-2xl transition-all ${currentView === 'health' ? 'text-emerald-500' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                <FaHeartbeat size={24} className={currentView === 'health' ? 'scale-110 drop-shadow-sm' : ''} />
+                <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">Plan</span>
+              </button>
+
+              {/* Center FAB-style Scan Button */}
+              <div className="relative -top-6">
+                <button
+                  onClick={() => setCurrentView('add')}
+                  className="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-indigo-600 text-white rounded-full shadow-lg shadow-indigo-200 flex items-center justify-center hover:bg-indigo-700 hover:scale-105 transition-all active:scale-95 border-[4px] border-white"
+                  aria-label="Scan Medicine or Grocery"
+                >
+                  <FaPlus size={24} />
+                </button>
+              </div>
+
+              <button
+                onClick={() => setCurrentView('notifications')}
+                className={`flex flex-col items-center justify-center w-16 h-16 rounded-2xl transition-all ${currentView === 'notifications' ? 'text-rose-500' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                <FaBell size={24} className={currentView === 'notifications' ? 'scale-110 drop-shadow-sm' : ''} />
+                <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">Alerts</span>
+              </button>
+
+              <button
+                onClick={() => setCurrentView('profile')}
+                className={`flex flex-col items-center justify-center w-16 h-16 rounded-2xl transition-all ${currentView === 'profile' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                <FaUserCircle size={24} className={currentView === 'profile' ? 'scale-110 drop-shadow-sm' : ''} />
+                <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">Me</span>
+              </button>
+            </div>
+          </nav>
+        )}
       </div>
     </div>
   );

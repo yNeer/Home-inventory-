@@ -102,11 +102,12 @@ const AddItem: React.FC<AddItemProps> = ({ onBack }) => {
               <img src={imagePreview} alt="Preview" className="w-full h-full absolute inset-0 object-cover z-0" />
             ) : (
               <div className="text-center z-0 flex flex-col items-center py-10">
-                <div className="w-20 h-20 bg-indigo-50 rounded-[28px] flex items-center justify-center mb-5 rotate-3 group-hover:rotate-6 transition-transform">
+                <div className="w-20 h-20 bg-indigo-50 rounded-[28px] flex items-center justify-center mb-5 rotate-3 group-hover:rotate-6 transition-transform relative">
+                   <div className="absolute -top-2 -right-2 bg-rose-500 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-full shadow-md animate-pulse">OCR</div>
                    <FaCamera className="text-3xl text-indigo-500" />
                 </div>
-                <p className="text-slate-800 font-extrabold text-xl tracking-tight">Scan Label</p>
-                <p className="text-[12px] text-slate-400 mt-2 font-bold uppercase tracking-widest">Auto-fill dates</p>
+                <p className="text-slate-800 font-extrabold text-xl tracking-tight">Scan Medicine / Grocery</p>
+                <p className="text-[11px] text-slate-400 mt-2 font-bold uppercase tracking-widest max-w-[200px] leading-relaxed">Auto-fill expiry, price & dates from image</p>
               </div>
             )}
 
