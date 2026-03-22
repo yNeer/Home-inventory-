@@ -1,5 +1,5 @@
 import Tesseract from 'tesseract.js';
-import { parse, isValid, format } from 'date-fns';
+import { isValid, format } from 'date-fns';
 
 export const processImageWithOCR = async (imageFile) => {
   try {
@@ -31,13 +31,13 @@ const parseOCRText = (text) => {
   }
 
   // Basic Date Regex DD/MM/YYYY or MM/DD/YYYY or DD-MM-YYYY
-  const dateRegex = /\b(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})\b/g;
+  const dateRegex = /\b(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})\b/g;
   let match;
   const dates = [];
 
   while ((match = dateRegex.exec(text)) !== null) {
      // Try to parse the date as DD/MM/YYYY or DD-MM-YYYY
-     const str = match[0].replace(/[\.\-]/g, '/');
+     const str = match[0].replace(/[.-]/g, '/');
      const parts = str.split('/');
      let d, m, y;
      if (parts.length === 3) {

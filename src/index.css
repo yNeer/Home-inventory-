@@ -42,3 +42,11 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-indigo-400/80;
 }
+/* Hide scrollbar for mobile feel */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

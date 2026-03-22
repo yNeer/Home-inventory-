@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { db } from '../db';
 import { processImageWithOCR } from '../utils/ocr';
-import GlassContainer from './GlassContainer';
 import { FaCamera, FaSpinner, FaArrowLeft, FaCheck } from 'react-icons/fa';
 
 const AddItem = ({ onBack }) => {
@@ -21,7 +20,6 @@ const AddItem = ({ onBack }) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result);
@@ -70,18 +68,24 @@ const AddItem = ({ onBack }) => {
   };
 
   return (
-    <GlassContainer className="max-w-2xl">
-      <div className="flex items-center mb-6">
-        <button onClick={onBack} className="text-gray-600 hover:text-indigo-600 mr-4 transition-colors p-2 rounded-full hover:bg-white/50">
-          <FaArrowLeft size={20} />
+    <div className="min-h-full bg-[#F8F9FE] flex flex-col pb-[120px] selection:bg-indigo-300">
+      {/* Dynamic Header */}
+      <header className="bg-white/80 backdrop-blur-2xl px-6 py-6 shadow-[0_4px_30px_rgb(0,0,0,0.02)] border-b border-white flex items-center justify-between sticky top-0 z-50">
+        <div className="flex items-center gap-4">
+           <button onClick={onBack} className="w-12 h-12 -ml-3 rounded-full flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 active:scale-95 transition-all">
+             <FaArrowLeft size={18} />
+           </button>
+           <h2 className="text-2xl font-extrabold text-[#1a1b41] tracking-tight">Add Item</h2>
+        </div>
+        <button onClick={handleSubmit} disabled={loading} className="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50">
+           <FaCheck size={16} />
         </button>
-        <h2 className="text-2xl font-bold text-gray-800">Add New Item</h2>
-      </div>
+      </header>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="px-6 py-8 space-y-8 flex-1 mt-2">
 
-        {/* Image Upload Section */}
-        <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-indigo-300/50 rounded-2xl bg-white/20 hover:bg-white/30 transition-colors cursor-pointer group relative overflow-hidden">
+        {/* Soft UI Image Upload Card */}
+        <div className="relative group overflow-hidden bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col items-center justify-center min-h-[220px] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all cursor-pointer">
             <input
               type="file"
               accept="image/*"
@@ -91,125 +95,128 @@ const AddItem = ({ onBack }) => {
               required={!imagePreview}
             />
             {imagePreview ? (
-              <img src={imagePreview} alt="Preview" className="h-48 object-contain rounded-lg shadow-md z-0" />
+              <img src={imagePreview} alt="Preview" className="w-full h-full absolute inset-0 object-cover z-0" />
             ) : (
-              <div className="text-center z-0 flex flex-col items-center">
-                <FaCamera className="text-4xl text-indigo-400 mb-2 group-hover:scale-110 transition-transform" />
-                <p className="text-gray-600 font-medium">Tap to scan product label</p>
-                <p className="text-sm text-gray-500 mt-1">We'll try to auto-fill dates & price</p>
+              <div className="text-center z-0 flex flex-col items-center py-10">
+                <div className="w-20 h-20 bg-indigo-50 rounded-[28px] flex items-center justify-center mb-5 rotate-3 group-hover:rotate-6 transition-transform">
+                   <FaCamera className="text-3xl text-indigo-500" />
+                </div>
+                <p className="text-slate-800 font-extrabold text-xl tracking-tight">Scan Label</p>
+                <p className="text-[12px] text-slate-400 mt-2 font-bold uppercase tracking-widest">Auto-fill dates</p>
               </div>
             )}
 
             {loading && (
-              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-20">
-                 <FaSpinner className="animate-spin text-3xl text-indigo-600 mb-2" />
-                 <span className="text-indigo-800 font-medium animate-pulse">Extracting details...</span>
+              <div className="absolute inset-0 bg-white/80 backdrop-blur-xl flex flex-col items-center justify-center z-20">
+                 <FaSpinner className="animate-spin text-4xl text-indigo-600 mb-4" />
+                 <span className="text-indigo-800 font-extrabold tracking-widest text-[10px] uppercase animate-pulse">Analyzing Image</span>
               </div>
             )}
         </div>
 
-        {/* Form Fields Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700 ml-1">Product Name</label>
+        {/* Inputs section */}
+        <div className="bg-white rounded-[32px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 space-y-6">
+          <div className="relative">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Product Name</label>
             <input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="glass-input"
+              className="w-full bg-slate-50/50 rounded-2xl px-5 py-4 text-slate-800 font-bold text-lg focus:outline-none focus:bg-indigo-50/30 focus:ring-2 focus:ring-indigo-100 transition-all border border-slate-100"
               required
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700 ml-1">Type</label>
-            <select
-              name="type"
-              value={formData.type}
-              onChange={handleChange}
-              className="glass-input appearance-none cursor-pointer"
-            >
-              <option value="grocery">Grocery</option>
-              <option value="medicine">Medicine</option>
-            </select>
-          </div>
+          <div className="grid grid-cols-2 gap-4">
+             <div className="relative">
+               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Type</label>
+               <select
+                 name="type"
+                 value={formData.type}
+                 onChange={handleChange}
+                 className="w-full bg-slate-50/50 rounded-2xl px-5 py-4 text-slate-800 font-bold text-base focus:outline-none focus:bg-indigo-50/30 focus:ring-2 focus:ring-indigo-100 transition-all appearance-none border border-slate-100"
+               >
+                 <option value="grocery">Grocery</option>
+                 <option value="medicine">Medicine</option>
+               </select>
+             </div>
 
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700 ml-1">Price (optional)</label>
-            <input
-              type="text"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-              className="glass-input"
-            />
+             <div className="relative">
+               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Price</label>
+               <div className="flex items-center bg-slate-50/50 rounded-2xl px-5 py-4 focus-within:bg-indigo-50/30 focus-within:ring-2 focus-within:ring-indigo-100 transition-all border border-slate-100">
+                  <span className="text-slate-400 font-extrabold text-base mr-2">₹</span>
+                  <input
+                    type="text"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleChange}
+                    className="w-full bg-transparent text-slate-800 font-bold text-base focus:outline-none"
+                  />
+               </div>
+             </div>
           </div>
+        </div>
 
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700 ml-1">Purchase Date</label>
+        <div className="bg-white rounded-[32px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 space-y-6">
+          <div className="relative">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Purchase Date</label>
             <input
               type="date"
               name="purchaseDate"
               value={formData.purchaseDate}
               onChange={handleChange}
-              className="glass-input"
+              className="w-full bg-slate-50/50 rounded-2xl px-5 py-4 text-slate-800 font-bold text-base focus:outline-none focus:bg-indigo-50/30 focus:ring-2 focus:ring-indigo-100 transition-all border border-slate-100"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700 ml-1">Mfg Date</label>
-            <input
-              type="date"
-              name="mfgDate"
-              value={formData.mfgDate}
-              onChange={handleChange}
-              className="glass-input"
-            />
-          </div>
+          <div className="grid grid-cols-2 gap-4">
+             <div className="relative">
+               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Mfg Date</label>
+               <input
+                 type="date"
+                 name="mfgDate"
+                 value={formData.mfgDate}
+                 onChange={handleChange}
+                 className="w-full bg-slate-50/50 rounded-2xl px-5 py-4 text-slate-800 font-bold text-[13px] sm:text-base focus:outline-none focus:bg-indigo-50/30 focus:ring-2 focus:ring-indigo-100 transition-all border border-slate-100"
+               />
+             </div>
 
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700 ml-1">Expiry Date</label>
-            <input
-              type="date"
-              name="expiryDate"
-              value={formData.expiryDate}
-              onChange={handleChange}
-              className="glass-input"
-            />
+             <div className="relative">
+               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Expiry</label>
+               <input
+                 type="date"
+                 name="expiryDate"
+                 value={formData.expiryDate}
+                 onChange={handleChange}
+                 className="w-full bg-slate-50/50 rounded-2xl px-5 py-4 text-slate-800 font-bold text-[13px] sm:text-base focus:outline-none focus:bg-indigo-50/30 focus:ring-2 focus:ring-indigo-100 transition-all border border-slate-100"
+               />
+             </div>
           </div>
         </div>
 
         {formData.type === 'medicine' && (
-          <div className="space-y-1 bg-red-50/50 p-4 rounded-xl border border-red-100/50">
-            <label className="text-sm font-semibold text-red-800 ml-1">Medicine Reminder</label>
+          <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-[32px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-rose-100/50 space-y-4 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-40 rounded-full blur-2xl -mr-10 -mt-10"></div>
+            <label className="text-[11px] font-extrabold text-rose-800 flex items-center gap-2 uppercase tracking-widest relative z-10">
+               <span className="text-[14px]">🔔</span> Reminder
+            </label>
             <select
               name="reminderOption"
               value={formData.reminderOption}
               onChange={handleChange}
-              className="glass-input border-red-200 focus:ring-red-400"
+              className="w-full bg-white/80 backdrop-blur-sm border border-rose-200/50 rounded-2xl px-5 py-4 text-rose-900 font-bold text-base focus:outline-none focus:ring-2 focus:ring-rose-200 shadow-sm appearance-none relative z-10"
             >
-              <option value="none">No reminder</option>
+              <option value="none">Off</option>
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
               <option value="monthly">Monthly</option>
             </select>
-            <p className="text-xs text-red-600 mt-2 ml-1">Get notifications before this medicine expires or when it needs to be taken.</p>
           </div>
         )}
 
-        <div className="pt-4 flex justify-end gap-3">
-          <button type="button" onClick={onBack} className="glass-button-secondary">
-            Cancel
-          </button>
-          <button type="submit" disabled={loading} className="glass-button flex items-center gap-2">
-            <FaCheck />
-            <span>Save Item</span>
-          </button>
-        </div>
-
       </form>
-    </GlassContainer>
+    </div>
   );
 };
 

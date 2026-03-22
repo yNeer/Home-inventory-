@@ -1,11 +1,10 @@
 import React from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db';
-import { format, isBefore, addDays } from 'date-fns';
-import { FaBox, FaPills, FaTrash, FaExclamationCircle } from 'react-icons/fa';
-import GlassContainer from './GlassContainer';
+import { FaBoxOpen, FaSearch, FaBell } from 'react-icons/fa';
+import { ItemCard } from './cards/ItemCard';
 
-const Dashboard = ({ onAddNew }) => {
+const Dashboard = () => {
   const items = useLiveQuery(() => db.items.toArray(), []);
 
   const handleDelete = async (id) => {
@@ -14,114 +13,66 @@ const Dashboard = ({ onAddNew }) => {
     }
   };
 
-  const getStatusColor = (expiryDate) => {
-    if (!expiryDate) return 'text-gray-500';
-    const expiry = new Date(expiryDate);
-    const now = new Date();
-
-    if (isBefore(expiry, now)) return 'text-red-500 font-bold'; // Expired
-    if (isBefore(expiry, addDays(now, 7))) return 'text-yellow-500 font-bold'; // Expiring soon
-    return 'text-green-500'; // Good
-  };
-
-  const getStatusText = (expiryDate) => {
-    if (!expiryDate) return 'No expiry date';
-    const expiry = new Date(expiryDate);
-    const now = new Date();
-
-    if (isBefore(expiry, now)) return 'Expired';
-    if (isBefore(expiry, addDays(now, 7))) return 'Expiring Soon';
-    return 'Good';
-  };
-
   return (
-    <GlassContainer>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 drop-shadow-sm">Inventory Dashboard</h1>
-        <button onClick={onAddNew} className="glass-button flex items-center gap-2">
-          <span>+ Add Item</span>
-        </button>
+    <div className="h-full relative px-6 pt-12 pb-32 bg-[#F8F9FE] selection:bg-indigo-300">
+      {/* Dynamic Header */}
+      <header className="flex justify-between items-center mb-10 z-20 relative">
+        <div className="flex flex-col">
+          <span className="text-sm font-bold text-indigo-400 tracking-widest uppercase mb-1 drop-shadow-sm">Dashboard</span>
+          <h1 className="text-4xl font-extrabold text-[#1a1b41] tracking-tight leading-none drop-shadow-sm">
+            Inventory.
+          </h1>
+        </div>
+        <div className="flex gap-4">
+           <button className="relative w-12 h-12 rounded-[20px] bg-white shadow-[0_4px_16px_rgba(0,0,0,0.03)] flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:scale-105 transition-all active:scale-95 border border-slate-100">
+             <FaSearch size={18} />
+           </button>
+           <button className="relative w-12 h-12 rounded-[20px] bg-white shadow-[0_4px_16px_rgba(0,0,0,0.03)] flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:scale-105 transition-all active:scale-95 border border-slate-100">
+             <FaBell size={18} />
+             <div className="absolute top-[12px] right-[14px] w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"></div>
+           </button>
+        </div>
+      </header>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 gap-4 mb-8">
+         <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-[28px] p-5 text-white shadow-lg shadow-indigo-200 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+            <div className="relative z-10">
+               <div className="text-indigo-100 font-bold uppercase tracking-widest text-[10px] mb-2">Total Items</div>
+               <div className="text-4xl font-extrabold tracking-tight">{items ? items.length : 0}</div>
+            </div>
+         </div>
+         <div className="bg-white rounded-[28px] p-5 text-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative overflow-hidden">
+            <div className="absolute bottom-0 right-0 w-24 h-24 bg-rose-100 opacity-50 rounded-full blur-2xl -mr-5 -mb-5"></div>
+            <div className="relative z-10">
+               <div className="text-rose-400 font-bold uppercase tracking-widest text-[10px] mb-2">Expiring</div>
+               <div className="text-4xl font-extrabold tracking-tight">0</div>
+            </div>
+         </div>
       </div>
 
+      {/* Content Area */}
       {!items || items.length === 0 ? (
-        <div className="text-center py-10">
-          <FaBox className="mx-auto text-6xl text-gray-400 mb-4 opacity-50" />
-          <p className="text-xl text-gray-600">Your inventory is empty.</p>
-          <p className="text-gray-500 mt-2">Click 'Add Item' to scan and track your groceries or medicines.</p>
+        <div className="text-center py-20 flex flex-col items-center justify-center mt-4">
+          <div className="w-[120px] h-[120px] rounded-full bg-white/60 shadow-[0_12px_40px_rgb(0,0,0,0.03)] flex items-center justify-center mb-8 backdrop-blur-xl border border-white">
+             <FaBoxOpen className="text-6xl text-slate-300/60" />
+          </div>
+          <p className="text-2xl font-bold text-slate-800 mb-2">It's empty here</p>
+          <p className="text-sm text-slate-400 px-8 leading-relaxed font-medium">Tap the plus button below to scan and track your first item.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex flex-col gap-6">
+          <div className="flex justify-between items-end mb-2">
+             <h2 className="text-lg font-bold text-slate-800 tracking-tight">Recent Items</h2>
+             <button className="text-indigo-500 font-bold text-xs uppercase tracking-wider hover:text-indigo-600 transition-colors">View All</button>
+          </div>
           {items.map(item => (
-            <div key={item.id} className="bg-white/30 border border-white/50 rounded-xl p-4 shadow-sm backdrop-blur-sm hover:bg-white/40 transition-colors relative group">
-
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex items-center gap-2">
-                  <div className={`p-2 rounded-lg ${item.type === 'medicine' ? 'bg-red-100/80 text-red-500' : 'bg-green-100/80 text-green-600'}`}>
-                    {item.type === 'medicine' ? <FaPills size={20} /> : <FaBox size={20} />}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg text-gray-800 capitalize leading-tight">{item.name}</h3>
-                    <span className="text-xs text-gray-500 uppercase font-medium tracking-wider">{item.type}</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleDelete(item.id)}
-                  className="text-gray-400 hover:text-red-500 transition-colors p-1"
-                  aria-label="Delete item"
-                >
-                  <FaTrash />
-                </button>
-              </div>
-
-              {item.image && (
-                <div className="mb-4 rounded-lg overflow-hidden h-32 bg-black/5 flex items-center justify-center border border-white/40">
-                  <img src={item.image} alt={item.name} className="w-full h-full object-cover opacity-80 mix-blend-multiply" />
-                </div>
-              )}
-
-              <div className="space-y-2 text-sm text-gray-700">
-                <div className="flex justify-between border-b border-gray-200/50 pb-1">
-                  <span className="font-medium text-gray-500">Price:</span>
-                  <span className="font-semibold">{item.price ? `₹${item.price}` : 'N/A'}</span>
-                </div>
-
-                <div className="flex justify-between border-b border-gray-200/50 pb-1">
-                  <span className="font-medium text-gray-500">Mfg Date:</span>
-                  <span>{item.mfgDate ? format(new Date(item.mfgDate), 'MMM dd, yyyy') : 'N/A'}</span>
-                </div>
-
-                <div className="flex justify-between border-b border-gray-200/50 pb-1">
-                  <span className="font-medium text-gray-500">Exp Date:</span>
-                  <span className={`font-semibold ${getStatusColor(item.expiryDate)}`}>
-                    {item.expiryDate ? format(new Date(item.expiryDate), 'MMM dd, yyyy') : 'N/A'}
-                  </span>
-                </div>
-
-                {item.purchaseDate && (
-                  <div className="flex justify-between pb-1">
-                    <span className="font-medium text-gray-500">Purchased:</span>
-                    <span>{format(new Date(item.purchaseDate), 'MMM dd, yyyy')}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-gray-200/50 flex items-center justify-between">
-                <span className={`text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1 ${getStatusColor(item.expiryDate).replace('text-', 'bg-').replace('-500', '-100/80')} ${getStatusColor(item.expiryDate)}`}>
-                   {getStatusText(item.expiryDate) !== 'Good' && <FaExclamationCircle />}
-                   {getStatusText(item.expiryDate)}
-                </span>
-
-                {item.reminderOption && item.reminderOption !== 'none' && (
-                  <span className="text-xs text-indigo-500 font-medium bg-indigo-50/80 px-2 py-1 rounded-full">
-                    {item.reminderOption} reminder
-                  </span>
-                )}
-              </div>
-            </div>
+            <ItemCard key={item.id} item={item} onDelete={handleDelete} />
           ))}
         </div>
       )}
-    </GlassContainer>
+    </div>
   );
 };
 
