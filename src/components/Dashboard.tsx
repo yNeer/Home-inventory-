@@ -121,14 +121,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications }) => {
         );
       })()}
 
-      {/* Floating Action Button */}
-      <button
-        onClick={onAddNew}
-        className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-tr from-indigo-500 to-indigo-600 text-white rounded-full shadow-lg shadow-indigo-200 flex items-center justify-center hover:bg-indigo-700 hover:scale-105 transition-all active:scale-95 z-50 border-[3px] border-white"
-        aria-label="Add new item"
-      >
-        <FaPlus size={24} />
-      </button>
     </div>
   );
 };

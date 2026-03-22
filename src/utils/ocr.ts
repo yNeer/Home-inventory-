@@ -23,49 +23,71 @@ const parseOCRText = (text: string) => {
     expiryDate: ''
   };
 
-  // Basic Price Regex (e.g. $10.99, Rs. 50, 50.00)
-  const priceRegex = /(?:rs\.?|₹|\$|mrp)\s*(\d+(?:\.\d{1,2})?)/i;
-  const priceMatch = text.match(priceRegex);
+  const normalizedText = text.replace(/\n/g, ' ').replace(/\s+/g, ' ');
+
+  // Enhanced Price Regex (handles "MRP: 150", "₹150.00", "$ 10", "Price: Rs. 50")
+  const priceRegex = /(?:m\.?r\.?p\.?|price|rs\.?|₹|\$)\s*:?\s*(\d{1,5}(?:\.\d{1,2})?)/i;
+  const priceMatch = normalizedText.match(priceRegex);
   if (priceMatch) {
     result.price = priceMatch[1];
   }
 
-  // Basic Date Regex DD/MM/YYYY or MM/DD/YYYY or DD-MM-YYYY
-  const dateRegex = /\b(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})\b/g;
+  // Common Date formats: DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY, MM/YYYY
+  const dateRegex = /\b(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})\b|\b(0[1-9]|1[0-2])[/\-.](\d{2,4})\b/g;
   let match;
-  const dates: Date[] = [];
+  const foundDates: { date: Date, raw: string, index: number }[] = [];
 
-  while ((match = dateRegex.exec(text)) !== null) {
-     // Try to parse the date as DD/MM/YYYY or DD-MM-YYYY
-     const str = match[0].replace(/[.-]/g, '/');
-     const parts = str.split('/');
-     let d, m, y;
-     if (parts.length === 3) {
-         d = parseInt(parts[0], 10);
-         m = parseInt(parts[1], 10) - 1; // 0-indexed month
-         y = parseInt(parts[2], 10);
-         if (y < 100) {
-             y += 2000;
-         }
+  while ((match = dateRegex.exec(normalizedText)) !== null) {
+     let dateObj: Date | null = null;
 
-         const dateObj = new Date(y, m, d);
-         if (isValid(dateObj)) {
-            dates.push(dateObj);
-         }
+     // Full Date (DD/MM/YYYY)
+     if (match[1] && match[2] && match[3]) {
+         const d = parseInt(match[1], 10);
+         const m = parseInt(match[2], 10) - 1; // 0-indexed month
+         let y = parseInt(match[3], 10);
+         if (y < 100) y += 2000;
+         dateObj = new Date(y, m, d);
+     }
+     // MM/YYYY format
+     else if (match[4] && match[5]) {
+         const m = parseInt(match[4], 10) - 1;
+         let y = parseInt(match[5], 10);
+         if (y < 100) y += 2000;
+         dateObj = new Date(y, m, 1); // assume 1st of month
+     }
+
+     if (dateObj && isValid(dateObj)) {
+        foundDates.push({ date: dateObj, raw: match[0], index: match.index });
      }
   }
 
-  // Heuristic: If we found dates, earlier is mfg, later is expiry.
-  if (dates.length >= 2) {
-      dates.sort((a, b) => a.getTime() - b.getTime());
-      result.mfgDate = format(dates[0], 'yyyy-MM-dd');
-      result.expiryDate = format(dates[dates.length - 1], 'yyyy-MM-dd');
-  } else if (dates.length === 1) {
-      // Just one date, guess it's expiry based on text context if possible, or just assign to expiry.
-      if (text.toLowerCase().includes('mfg') || text.toLowerCase().includes('pkd')) {
-         result.mfgDate = format(dates[0], 'yyyy-MM-dd');
-      } else {
-         result.expiryDate = format(dates[0], 'yyyy-MM-dd');
+  if (foundDates.length > 0) {
+      foundDates.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+      // Attempt context-based extraction near the dates
+      const expKeywords = ['exp', 'expiry', 'use by', 'best before', 'bb'];
+      const mfgKeywords = ['mfg', 'pkd', 'packed', 'manufactured'];
+
+      for (const item of foundDates) {
+          const contextStart = Math.max(0, item.index - 30);
+          const contextStr = normalizedText.substring(contextStart, item.index + item.raw.length + 30).toLowerCase();
+
+          if (expKeywords.some(kw => contextStr.includes(kw))) {
+             result.expiryDate = format(item.date, 'yyyy-MM-dd');
+          } else if (mfgKeywords.some(kw => contextStr.includes(kw))) {
+             result.mfgDate = format(item.date, 'yyyy-MM-dd');
+          }
+      }
+
+      // Fallback heuristic if explicit keywords weren't found
+      if (!result.expiryDate && !result.mfgDate) {
+          if (foundDates.length >= 2) {
+             result.mfgDate = format(foundDates[0].date, 'yyyy-MM-dd');
+             result.expiryDate = format(foundDates[foundDates.length - 1].date, 'yyyy-MM-dd');
+          } else if (foundDates.length === 1) {
+             // If there's only one date on a product label, it's typically the expiry
+             result.expiryDate = format(foundDates[0].date, 'yyyy-MM-dd');
+          }
       }
   }
 

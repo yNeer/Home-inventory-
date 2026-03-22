@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { db, InventoryItem } from '../db';
 import { processImageWithOCR } from '../utils/ocr';
-import { FaCamera, FaSpinner, FaArrowLeft, FaCheck } from 'react-icons/fa';
+import { lookupBarcode } from '../utils/productLookup';
+import BarcodeScanner from './BarcodeScanner';
+import { FaCamera, FaSpinner, FaArrowLeft, FaCheck, FaBarcode } from 'react-icons/fa';
 
 interface AddItemProps {
   onBack: () => void;
@@ -10,6 +12,7 @@ interface AddItemProps {
 const AddItem: React.FC<AddItemProps> = ({ onBack }) => {
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showScanner, setShowScanner] = useState(false);
   const [formData, setFormData] = useState<Omit<InventoryItem, 'id'>>({
     name: '',
     type: 'grocery',
@@ -44,6 +47,31 @@ const AddItem: React.FC<AddItemProps> = ({ onBack }) => {
       alert("Could not extract details from image automatically. Please fill them in manually.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBarcodeScanned = async (barcode: string) => {
+    setShowScanner(false);
+    setLoading(true);
+    try {
+      const product = await lookupBarcode(barcode);
+      if (product) {
+        setFormData(prev => ({
+          ...prev,
+          name: product.name,
+          type: product.type
+        }));
+        if (product.image_url) {
+           setImagePreview(product.image_url);
+        }
+      } else {
+         setFormData(prev => ({ ...prev, name: barcode }));
+         alert("Product not found in public database. Barcode copied to name.");
+      }
+    } catch (error) {
+       console.error(error);
+    } finally {
+       setLoading(false);
     }
   };
 
@@ -91,41 +119,51 @@ const AddItem: React.FC<AddItemProps> = ({ onBack }) => {
 
       <form onSubmit={handleSubmit} className="px-6 md:px-10 py-8 md:py-12 flex-1 mt-2 max-w-5xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
 
-        {/* Soft UI Image Upload Card */}
-        <div className="relative group overflow-hidden bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col items-center justify-center min-h-[220px] md:min-h-[400px] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all cursor-pointer col-span-1">
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={handleImageUpload}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-              required={!imagePreview}
-            />
-            {imagePreview ? (
-              <img src={imagePreview} alt="Preview" className="w-full h-full absolute inset-0 object-cover z-0" />
-            ) : (
-              <div className="text-center z-0 flex flex-col items-center py-10">
-                <div className="w-20 h-20 bg-indigo-50 rounded-[28px] flex items-center justify-center mb-5 rotate-3 group-hover:rotate-6 transition-transform relative">
-                   <div className="absolute -top-2 -right-2 bg-rose-500 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-full shadow-md animate-pulse">OCR</div>
-                   <FaCamera className="text-3xl text-indigo-500" />
+        {/* Scanning Options */}
+        <div className="col-span-1 space-y-4 flex flex-col">
+          {/* Main Image/OCR Upload Card */}
+          <div className="relative flex-1 group overflow-hidden bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col items-center justify-center min-h-[220px] md:min-h-[340px] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all cursor-pointer">
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleImageUpload}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                required={!imagePreview && !formData.name}
+              />
+              {imagePreview ? (
+                <img src={imagePreview} alt="Preview" className="w-full h-full absolute inset-0 object-cover z-0" />
+              ) : (
+                <div className="text-center z-0 flex flex-col items-center py-10">
+                  <div className="w-20 h-20 bg-indigo-50 rounded-[28px] flex items-center justify-center mb-5 rotate-3 group-hover:rotate-6 transition-transform relative">
+                     <div className="absolute -top-2 -right-2 bg-rose-500 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-full shadow-md animate-pulse">OCR</div>
+                     <FaCamera className="text-3xl text-indigo-500" />
+                  </div>
+                  <p className="text-slate-800 font-extrabold text-xl tracking-tight">Label Scan</p>
+                  <p className="text-[11px] text-slate-400 mt-2 font-bold uppercase tracking-widest max-w-[200px] leading-relaxed">Auto-fill expiry, price & dates from image</p>
                 </div>
-                <p className="text-slate-800 font-extrabold text-xl tracking-tight">Scan Medicine / Grocery</p>
-                <p className="text-[11px] text-slate-400 mt-2 font-bold uppercase tracking-widest max-w-[200px] leading-relaxed">Auto-fill expiry, price & dates from image</p>
-              </div>
-            )}
+              )}
 
-            {loading && (
-              <div className="absolute inset-0 bg-white/80 backdrop-blur-xl flex flex-col items-center justify-center z-20">
-                 <FaSpinner className="animate-spin text-4xl text-indigo-600 mb-4" />
-                 <span className="text-indigo-800 font-extrabold tracking-widest text-[10px] uppercase animate-pulse">Analyzing Image</span>
-              </div>
-            )}
+              {loading && (
+                <div className="absolute inset-0 bg-white/80 backdrop-blur-xl flex flex-col items-center justify-center z-20">
+                   <FaSpinner className="animate-spin text-4xl text-indigo-600 mb-4" />
+                   <span className="text-indigo-800 font-extrabold tracking-widest text-[10px] uppercase animate-pulse">Analyzing</span>
+                </div>
+              )}
+          </div>
+
+          {/* Alternative Barcode Button */}
+          <button
+            type="button"
+            onClick={() => setShowScanner(true)}
+            className="w-full h-16 bg-white border border-slate-200 rounded-[24px] shadow-sm flex items-center justify-center gap-3 font-bold text-slate-600 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition-colors active:scale-[0.98]"
+          >
+            <FaBarcode size={22} />
+            <span>Scan Product Barcode</span>
+          </button>
         </div>
 
         <div className="space-y-8 col-span-1">
-          {/* Inputs section */}
-          <div className="bg-white rounded-[32px] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 space-y-6">
-          </div>
 
           <div className="bg-white rounded-[32px] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 space-y-6">
             <div className="relative">
@@ -229,6 +267,13 @@ const AddItem: React.FC<AddItemProps> = ({ onBack }) => {
         </div>
 
       </form>
+
+      {showScanner && (
+        <BarcodeScanner
+          onResult={handleBarcodeScanned}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
     </div>
   );
 };
