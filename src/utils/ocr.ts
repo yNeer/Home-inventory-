@@ -3,11 +3,23 @@ import { isValid, format } from 'date-fns';
 
 export const processImageWithOCR = async (imageFile: File | Blob) => {
   try {
-    const result = await Tesseract.recognize(imageFile, 'eng', {
+    // 1. Create a worker instead of using the shorthand recognize method
+    const worker = await Tesseract.createWorker('eng', 1, {
       logger: m => console.log(m)
     });
+
+    // 2. Set advanced parameters
+    await worker.setParameters({
+      tessedit_pageseg_mode: Tesseract.PSM.AUTO_OSD // Automatically detects orientation and script
+    });
+
+    // 3. Recognize
+    const result = await worker.recognize(imageFile);
     const text = result.data.text;
-    console.log("OCR Extracted Text:", text);
+    console.log("OCR Extracted Text (Advanced):", text);
+
+    // 4. Terminate worker
+    await worker.terminate();
 
     return parseOCRText(text);
   } catch (error) {
@@ -18,6 +30,7 @@ export const processImageWithOCR = async (imageFile: File | Blob) => {
 
 const parseOCRText = (text: string) => {
   const result = {
+    name: '',
     price: '',
     mfgDate: '',
     expiryDate: '',
@@ -26,6 +39,20 @@ const parseOCRText = (text: string) => {
   };
 
   const normalizedText = text.replace(/\n/g, ' ').replace(/\s+/g, ' ');
+
+  // Extract Name Heuristic: Look for the first prominent block of ALL CAPS or Title Case letters
+  // at the beginning of the text, avoiding common utility words
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 2);
+  const skipWords = ['mrp', 'price', 'mfg', 'exp', 'batch', 'net', 'weight', 'rs', 'use by'];
+
+  for (const line of lines) {
+    const isSkipWord = skipWords.some(w => line.toLowerCase().includes(w));
+    // If it's mostly letters, not too long, and doesn't contain utility keywords, assume it might be a product/brand name.
+    if (!isSkipWord && /^[A-Z][a-zA-Z\s]{3,30}$/i.test(line)) {
+       result.name = line;
+       break;
+    }
+  }
 
   // Enhanced Price Regex
   const priceRegex = /(?:m\.?r\.?p\.?|price|rs\.?|₹|\$)\s*:?\s*(\d{1,5}(?:\.\d{1,2})?)/i;

@@ -3,6 +3,7 @@ import { db, InventoryItem } from '../db';
 import { processImageWithOCR } from '../utils/ocr';
 import { lookupBarcode } from '../utils/productLookup';
 import { extractBarcodeFromImage } from '../utils/barcodeExtractor';
+import { processImageForOCR } from '../utils/imageProcessor';
 import BarcodeScanner from './BarcodeScanner';
 import { FaCamera, FaSpinner, FaArrowLeft, FaCheck, FaBarcode, FaMagic, FaImages } from 'react-icons/fa';
 
@@ -38,13 +39,18 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => setImagePreview(reader.result as string);
-    reader.readAsDataURL(file);
+    // Show initial blur preview immediately
+    const previewReader = new FileReader();
+    previewReader.onloadend = () => setImagePreview(previewReader.result as string);
+    previewReader.readAsDataURL(file);
 
     setLoading(true);
     try {
-      // 1. Try to find barcode in the image
+      // 1. Process image for OCR (cleans, crops, gray-scales, contrasts)
+      const { processedFile, dataUrl } = await processImageForOCR(file);
+      setImagePreview(dataUrl); // Show the cleaned image to user
+
+      // 2. Try to find barcode in the original image (barcode scanners prefer color/unaltered)
       const decodedBarcode = await extractBarcodeFromImage(file);
       let productName = formData.name;
       let barcodeVal = formData.barcode;
@@ -55,12 +61,12 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
          if (product) productName = product.name;
       }
 
-      // 2. OCR for dates, mrp, batch, ingredients
-      const extractedData = await processImageWithOCR(file);
+      // 3. OCR for dates, mrp, batch, ingredients on CLEANED image
+      const extractedData = await processImageWithOCR(processedFile);
 
       setFormData(prev => ({
         ...prev,
-        name: productName || prev.name,
+        name: productName || extractedData.name || prev.name,
         barcode: barcodeVal || prev.barcode,
         price: extractedData.price || prev.price,
         mfgDate: extractedData.mfgDate || prev.mfgDate,
@@ -94,7 +100,9 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
     if (!file) return;
     setLoading(true);
     try {
-       const extractedData = await processImageWithOCR(file);
+       // Clean image offline first
+       const { processedFile } = await processImageForOCR(file);
+       const extractedData = await processImageWithOCR(processedFile);
        setFormData(prev => ({
          ...prev,
          price: extractedData.price || prev.price,
