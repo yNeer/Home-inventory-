@@ -20,16 +20,37 @@ const parseOCRText = (text: string) => {
   const result = {
     price: '',
     mfgDate: '',
-    expiryDate: ''
+    expiryDate: '',
+    batchNo: '',
+    components: ''
   };
 
   const normalizedText = text.replace(/\n/g, ' ').replace(/\s+/g, ' ');
 
-  // Enhanced Price Regex (handles "MRP: 150", "₹150.00", "$ 10", "Price: Rs. 50")
+  // Enhanced Price Regex
   const priceRegex = /(?:m\.?r\.?p\.?|price|rs\.?|₹|\$)\s*:?\s*(\d{1,5}(?:\.\d{1,2})?)/i;
   const priceMatch = normalizedText.match(priceRegex);
   if (priceMatch) {
     result.price = priceMatch[1];
+  }
+
+  // Batch No Regex
+  const batchRegex = /(?:batch\s*(?:no|number)?\.?|b\.?\s*no\.?|lot)\s*:?\s*([A-Z0-9-]{3,15})/i;
+  const batchMatch = normalizedText.match(batchRegex);
+  if (batchMatch) {
+    result.batchNo = batchMatch[1].trim();
+  }
+
+  // Medicine Components / Ingredients extraction heuristic
+  // Looks for blocks of text following words like "Composition", "Ingredients", "Contains"
+  const compRegex = /(?:composition|ingredients?|each.*contains)\s*:?\s*(.*?)(?=\b(?:mfg|batch|mrp|exp|dosage|store|warning|manufactured)\b|$)/i;
+  const compMatch = normalizedText.match(compRegex);
+  if (compMatch && compMatch[1]) {
+     // Clean up and limit length
+     const comp = compMatch[1].trim();
+     if (comp.length > 5 && comp.length < 300) {
+        result.components = comp;
+     }
   }
 
   // Common Date formats: DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY, MM/YYYY
