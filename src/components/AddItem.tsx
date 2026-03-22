@@ -31,7 +31,8 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
     batchNo: '',
     components: '',
     barcode: '',
-    reminderOption: 'none'
+    reminderOption: 'none',
+    medicineTiming: 'any'
   });
 
   // Smart Scan: One image for everything (back of product usually)
@@ -397,22 +398,40 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
                  />
               </div>
 
-              <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-[32px] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-rose-100/50 space-y-4 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-40 rounded-full blur-2xl -mr-10 -mt-10"></div>
-                <label className="text-[11px] font-extrabold text-rose-800 flex items-center gap-2 uppercase tracking-widest relative z-10">
-                   <span className="text-[14px]">🔔</span> Reminder
-                </label>
-            <select
-              name="reminderOption"
-              value={formData.reminderOption}
-              onChange={handleChange}
-              className="w-full bg-white/80 backdrop-blur-sm border border-rose-200/50 rounded-2xl px-5 py-4 text-rose-900 font-bold text-base focus:outline-none focus:ring-2 focus:ring-rose-200 shadow-sm appearance-none relative z-10"
-            >
-              <option value="none">Off</option>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-              </select>
+              <div className="grid grid-cols-2 gap-4">
+                 <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-[32px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-rose-100/50 relative overflow-hidden col-span-1">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-40 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+                    <label className="text-[10px] font-extrabold text-rose-800 flex items-center gap-2 uppercase tracking-widest relative z-10 mb-3">
+                       <span className="text-[14px]">🔔</span> Remind
+                    </label>
+                    <select
+                      name="reminderOption"
+                      value={formData.reminderOption}
+                      onChange={handleChange}
+                      className="w-full bg-white/80 backdrop-blur-sm border border-rose-200/50 rounded-2xl px-4 py-3 text-rose-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-rose-200 shadow-sm appearance-none relative z-10"
+                    >
+                      <option value="none">Off</option>
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                    </select>
+                 </div>
+
+                 <div className="bg-indigo-50/50 rounded-[32px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-indigo-100/50 relative overflow-hidden col-span-1">
+                    <label className="text-[10px] font-extrabold text-indigo-800 flex items-center gap-2 uppercase tracking-widest relative z-10 mb-3">
+                       <span className="text-[14px]">🍽️</span> Timing
+                    </label>
+                    <select
+                      name="medicineTiming"
+                      value={formData.medicineTiming}
+                      onChange={handleChange}
+                      className="w-full bg-white/80 backdrop-blur-sm border border-indigo-200/50 rounded-2xl px-4 py-3 text-indigo-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 shadow-sm appearance-none relative z-10"
+                    >
+                      <option value="any">Anytime</option>
+                      <option value="before_food">Before Food</option>
+                      <option value="after_food">After Food</option>
+                    </select>
+                 </div>
               </div>
             </div>
           )}

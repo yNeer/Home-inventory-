@@ -12,6 +12,7 @@ export interface InventoryItem {
   components?: string;
   barcode?: string;
   reminderOption?: 'none' | 'daily' | 'weekly' | 'monthly';
+  medicineTiming?: 'before_food' | 'after_food' | 'any';
   image?: string;
 }
 
@@ -32,6 +33,14 @@ export class HomeInventoryDB extends Dexie {
            if (item.batchNo === undefined) item.batchNo = '';
            if (item.components === undefined) item.components = '';
            if (item.barcode === undefined) item.barcode = '';
+       });
+    });
+    // Version 3 Schema update: Added medicineTiming
+    this.version(3).stores({
+      items: '++id, name, type, purchaseDate, mfgDate, expiryDate, price, batchNo, components, barcode, reminderOption, medicineTiming, image'
+    }).upgrade(tx => {
+       return tx.table('items').toCollection().modify(item => {
+           if (item.medicineTiming === undefined) item.medicineTiming = 'any';
        });
     });
   }
