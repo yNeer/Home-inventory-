@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db';
+import { scheduleLocalNotification } from '../../utils/notifications';
 import { FaBell, FaCheck, FaTimes, FaClock, FaPills } from 'react-icons/fa';
 
 export const Notifications: React.FC = () => {
@@ -16,8 +17,13 @@ export const Notifications: React.FC = () => {
     setDismissed(prev => [...prev, id]);
   };
 
-  const handleRemindLater = (id: number, minutes: number) => {
-    alert(`Reminder snoozed for ${minutes} minutes.`);
+  const handleRemindLater = async (id: number, minutes: number, name: string) => {
+    await scheduleLocalNotification(
+       `Time for ${name}`,
+       `Your snoozed reminder for ${minutes} minutes is up.`,
+       minutes
+    );
+    alert(`Native reminder scheduled for ${minutes} minutes from now.`);
     handleDismiss(id);
   };
 
@@ -81,7 +87,7 @@ export const Notifications: React.FC = () => {
                        <button onClick={() => med.id && handleDismiss(med.id)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 px-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95">
                           <FaTimes /> Skip
                        </button>
-                       <button onClick={() => med.id && handleRemindLater(med.id, 10)} className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold py-3 px-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95">
+                       <button onClick={() => med.id && handleRemindLater(med.id, 10, med.name)} className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold py-3 px-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95">
                           <FaClock /> +10m
                        </button>
                      </div>
@@ -95,13 +101,13 @@ export const Notifications: React.FC = () => {
                           {[10, 15, 20, 25, 30, 45, 60].map(mins => (
                             <button
                               key={mins}
-                              onClick={() => med.id && handleRemindLater(med.id, mins)}
+                              onClick={() => med.id && handleRemindLater(med.id, mins, "Food")}
                               className="px-3.5 py-2 bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 rounded-xl text-xs font-bold text-slate-600 transition-colors shadow-sm"
                             >
                               {mins === 60 ? '1 Hour' : `${mins} Min`}
                             </button>
                           ))}
-                          <button onClick={() => med.id && handleRemindLater(med.id, parseInt(window.prompt('Remind in how many minutes?', '45') || '0'))} className="px-4 py-2 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-500 transition-colors">Custom...</button>
+                          <button onClick={() => med.id && handleRemindLater(med.id, parseInt(window.prompt('Remind in how many minutes?', '45') || '0'), "Food")} className="px-4 py-2 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-500 transition-colors">Custom...</button>
                         </div>
                      </div>
                   )}

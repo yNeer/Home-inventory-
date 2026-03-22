@@ -1,7 +1,20 @@
-import React from 'react';
-import { FaUserCircle, FaCog, FaSignOutAlt, FaShieldAlt } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaUserCircle, FaCog, FaSignOutAlt, FaShieldAlt, FaBell } from 'react-icons/fa';
 
 export const Profile: React.FC = () => {
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default');
+
+  useEffect(() => {
+    if ('Notification' in window) {
+      setNotifPermission(Notification.permission);
+    }
+  }, []);
+
+  const requestNotifs = async () => {
+    if (!('Notification' in window)) return;
+    const perm = await Notification.requestPermission();
+    setNotifPermission(perm);
+  };
   return (
     <div className="min-h-full px-6 md:px-10 lg:px-12 pt-safe pb-32 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
       <header className="mb-10 mt-6 sm:mt-8 relative">
@@ -34,6 +47,20 @@ export const Profile: React.FC = () => {
             <FaShieldAlt size={18} />
           </div>
           <span className="font-bold text-slate-700 flex-1">Privacy & Security</span>
+        </button>
+
+        <button
+          onClick={requestNotifs}
+          disabled={notifPermission === 'granted'}
+          className="flex items-center gap-4 w-full p-4 rounded-[20px] hover:bg-slate-50 transition-colors text-left active:bg-slate-100 disabled:opacity-50"
+        >
+          <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
+            <FaBell size={18} />
+          </div>
+          <div className="flex flex-col flex-1">
+             <span className="font-bold text-slate-700">Push Notifications</span>
+             <span className="text-xs font-medium text-slate-400">{notifPermission === 'granted' ? 'Enabled' : 'Click to enable device alerts'}</span>
+          </div>
         </button>
         <button className="flex items-center gap-4 w-full p-4 rounded-[20px] hover:bg-slate-50 transition-colors text-left active:bg-slate-100">
           <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-rose-500">
