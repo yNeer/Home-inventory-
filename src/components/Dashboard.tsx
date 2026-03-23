@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db';
-import { FaBoxOpen, FaPlus, FaSearch, FaBell } from 'react-icons/fa';
+import { FaBoxOpen, FaPlus, FaSearch, FaBell, FaDownload, FaSpinner } from 'react-icons/fa';
 import { ItemCard } from './cards/ItemCard';
+import { usePWAInstall } from '../hooks/usePWAInstall';
 
 interface DashboardProps {
   onAddNew: () => void;
@@ -12,6 +13,8 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications }) => {
   const items = useLiveQuery(() => db.items.toArray(), []);
   const [searchQuery, setSearchQuery] = useState('');
+  const { isInstallable, installPWA, isInstalled } = usePWAInstall();
+  const [isInstalling, setIsInstalling] = useState(false);
 
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this item?')) {
@@ -29,13 +32,29 @@ const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications }) => {
             Inventory.
           </h1>
         </div>
-        <button
-          onClick={onNotifications}
-          className="md:hidden w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-400 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:text-indigo-500 transition-colors relative"
-        >
-          <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white z-10"></div>
-          <FaBell size={20} />
-        </button>
+        <div className="flex gap-3">
+          {!isInstalled && isInstallable && (
+            <button
+              onClick={async () => {
+                setIsInstalling(true);
+                await installPWA();
+                setIsInstalling(false);
+              }}
+              disabled={isInstalling}
+              className="md:hidden w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-blue-100 hover:bg-blue-100 transition-colors relative"
+              aria-label="Install App"
+            >
+              {isInstalling ? <FaSpinner className="animate-spin" size={18} /> : <FaDownload size={18} />}
+            </button>
+          )}
+          <button
+            onClick={onNotifications}
+            className="md:hidden w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-400 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:text-indigo-500 transition-colors relative"
+          >
+            <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white z-10"></div>
+            <FaBell size={20} />
+          </button>
+        </div>
       </header>
 
       {/* Search Bar */}
