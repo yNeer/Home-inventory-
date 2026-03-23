@@ -95,44 +95,55 @@ export const Profile: React.FC = () => {
                  </motion.div>
                  <div className="flex flex-col flex-1">
                    <span className="font-bold text-lg drop-shadow-sm">
-                     {installSuccess ? 'Installed!' : isInstalling ? 'Installing...' : 'Install App'}
+                     Install App
                    </span>
                    <span className="text-sm font-medium text-blue-100">
-                     {installSuccess ? 'Ready for offline use' : 'Get faster access & offline mode'}
+                     Get faster access & offline mode
                    </span>
-                   {!isInstallable && !installSuccess && <span className="text-[10px] text-blue-200 mt-1 uppercase tracking-wider font-bold">Use browser menu to add</span>}
+                   <span className="text-[10px] text-blue-200 mt-1 uppercase tracking-wider font-bold">Use browser menu to add</span>
                  </div>
               </div>
 
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={async () => {
-                   if (isInstallable) {
-                      setIsInstalling(true);
-                      const outcome = await installPWA();
-                      setIsInstalling(false);
-                      if (outcome === 'accepted') {
-                        setInstallSuccess(true);
-                        // Hide the banner completely after a delay
-                        setTimeout(() => setInstallSuccess(false), 2000);
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                {isInstallable && (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={async () => {
+                       setIsInstalling(true);
+                       const outcome = await installPWA();
+                       setIsInstalling(false);
+                       if (outcome === 'accepted') {
+                         setInstallSuccess(true);
+                         setTimeout(() => setInstallSuccess(false), 2000);
+                       }
+                    }}
+                    disabled={isInstalling || installSuccess}
+                    className={`w-full sm:w-auto px-6 py-3 font-extrabold rounded-xl shadow-sm transition-all duration-300 shrink-0 relative z-10 flex items-center justify-center gap-2
+                      ${installSuccess
+                        ? 'bg-emerald-400 text-white'
+                        : isInstalling
+                          ? 'bg-blue-400 text-white/80 cursor-not-allowed'
+                          : 'bg-white text-blue-600 hover:bg-blue-50'
                       }
-                   } else {
-                      setShowFallbackModal(true);
-                   }
-                }}
-                disabled={isInstalling || installSuccess}
-                className={`w-full sm:w-auto px-6 py-3 font-extrabold rounded-xl shadow-sm transition-all duration-300 shrink-0 relative z-10 flex items-center justify-center gap-2
-                  ${installSuccess
-                    ? 'bg-emerald-400 text-white'
-                    : isInstalling
-                      ? 'bg-blue-400 text-white/80 cursor-not-allowed'
-                      : 'bg-white text-blue-600 hover:bg-blue-50'
-                  }
-                `}
-              >
-                {installSuccess ? 'Success' : isInstalling ? 'Waiting...' : 'Install Now'}
-              </motion.button>
+                    `}
+                  >
+                    {installSuccess ? 'Success' : isInstalling ? 'Waiting...' : 'Install App'}
+                  </motion.button>
+                )}
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                     setShowFallbackModal(true);
+                     setPlatformTab('ios');
+                  }}
+                  className={`w-full sm:w-auto px-6 py-3 font-extrabold rounded-xl shadow-sm transition-all duration-300 shrink-0 relative z-10 flex items-center justify-center gap-2 bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm`}
+                >
+                  <FaApple size={18} />
+                  on iOS
+                </motion.button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
