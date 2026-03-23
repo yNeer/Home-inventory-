@@ -5,6 +5,8 @@ export interface ProductDetails {
   type: 'grocery' | 'medicine';
   image_url?: string;
   brand?: string;
+  description?: string;
+  details?: string;
 }
 
 export const lookupBarcode = async (barcode: string): Promise<ProductDetails | null> => {
@@ -15,11 +17,28 @@ export const lookupBarcode = async (barcode: string): Promise<ProductDetails | n
     if (response.ok) {
       const data = await response.json();
       if (data.status === 1 && data.product) {
+        const p = data.product;
+
+        // Compile description from categories, ingredients or generic text
+        const descriptionParts = [];
+        if (p.categories) descriptionParts.push(p.categories);
+        if (p.ingredients_text) descriptionParts.push(`Ingredients: ${p.ingredients_text}`);
+        else if (p.generic_name) descriptionParts.push(p.generic_name);
+
+        // Compile details (volume, weight, quantity, quality/nutriscore)
+        const detailsParts = [];
+        if (p.quantity) detailsParts.push(`Quantity/Volume: ${p.quantity}`);
+        if (p.packaging) detailsParts.push(`Packaging: ${p.packaging}`);
+        if (p.nutriscore_grade) detailsParts.push(`Nutri-Score: ${p.nutriscore_grade.toUpperCase()}`);
+        if (p.ecoscore_grade) detailsParts.push(`Eco-Score: ${p.ecoscore_grade.toUpperCase()}`);
+
         return {
-          name: data.product.product_name || 'Unknown Product',
+          name: p.product_name || 'Unknown Product',
           type: 'grocery',
-          image_url: data.product.image_url,
-          brand: data.product.brands
+          image_url: p.image_url,
+          brand: p.brands,
+          description: descriptionParts.join('\n\n') || undefined,
+          details: detailsParts.join(' • ') || undefined
         };
       }
     }

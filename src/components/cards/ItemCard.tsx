@@ -39,6 +39,8 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onDelete }) => {
               {item.price && <span className="text-[10px] font-bold text-slate-600 px-2 py-0.5 rounded-full border border-slate-200">₹{item.price}</span>}
               {item.batchNo && <span className="text-[9px] font-mono font-bold text-indigo-600 px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-100">B: {item.batchNo}</span>}
             </div>
+            {item.details && <p className="text-xs text-slate-500 mt-2 font-medium line-clamp-1">{item.details}</p>}
+            {item.description && <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-snug">{item.description}</p>}
           </div>
         </div>
 

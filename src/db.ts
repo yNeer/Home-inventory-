@@ -15,6 +15,8 @@ export interface InventoryItem {
   medicineTiming?: 'before_food' | 'after_food' | 'any';
   totalQuantity?: number;
   dailyDose?: number;
+  description?: string;
+  details?: string;
   image?: string;
 }
 
@@ -48,6 +50,10 @@ export class HomeInventoryDB extends Dexie {
     // Version 4 Schema update: Added dosage properties
     this.version(4).stores({
       items: '++id, name, type, purchaseDate, mfgDate, expiryDate, price, batchNo, components, barcode, reminderOption, medicineTiming, totalQuantity, dailyDose, image'
+    });
+    // Version 5 Schema update: Added description and details properties
+    this.version(5).stores({
+      items: '++id, name, type, purchaseDate, mfgDate, expiryDate, price, batchNo, components, barcode, reminderOption, medicineTiming, totalQuantity, dailyDose, description, details, image'
     });
   }
 }

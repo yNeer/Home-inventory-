@@ -31,6 +31,8 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
     batchNo: '',
     components: '',
     barcode: '',
+    description: '',
+    details: '',
     reminderOption: 'none',
     medicineTiming: 'any'
   });
@@ -55,11 +57,17 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
       const decodedBarcode = await extractBarcodeFromImage(file);
       let productName = formData.name;
       let barcodeVal = formData.barcode;
+      let descriptionVal = formData.description;
+      let detailsVal = formData.details;
 
       if (decodedBarcode) {
          barcodeVal = decodedBarcode;
          const product = await lookupBarcode(decodedBarcode);
-         if (product) productName = product.name;
+         if (product) {
+           productName = product.name;
+           if (product.description) descriptionVal = product.description;
+           if (product.details) detailsVal = product.details;
+         }
       }
 
       // 3. OCR for dates, mrp, batch, ingredients on CLEANED image
@@ -69,6 +77,8 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
         ...prev,
         name: productName || extractedData.name || prev.name,
         barcode: barcodeVal || prev.barcode,
+        description: descriptionVal || prev.description,
+        details: detailsVal || prev.details,
         price: extractedData.price || prev.price,
         mfgDate: extractedData.mfgDate || prev.mfgDate,
         expiryDate: extractedData.expiryDate || prev.expiryDate,
@@ -128,7 +138,9 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
         setFormData(prev => ({
           ...prev,
           name: product.name,
-          type: product.type
+          type: product.type,
+          description: product.description || prev.description,
+          details: product.details || prev.details
         }));
         if (product.image_url) {
            setImagePreview(product.image_url);
@@ -386,6 +398,30 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
                />
             </div>
 
+            <div className="md:col-span-2">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Description</label>
+              <textarea
+                name="description"
+                value={formData.description || ''}
+                onChange={handleChange as any}
+                rows={2}
+                placeholder="General description or categories..."
+                className="w-full bg-slate-50/50 rounded-2xl px-5 py-4 text-slate-700 font-medium text-sm focus:outline-none focus:bg-indigo-50/30 focus:ring-2 focus:ring-indigo-100 transition-all border border-slate-100 resize-none"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Details (Volume, Weight, Quality)</label>
+              <input
+                type="text"
+                name="details"
+                value={formData.details || ''}
+                onChange={handleChange}
+                placeholder="e.g. 500ml • Nutri-Score: A"
+                className="w-full bg-slate-50/50 rounded-2xl px-5 py-4 text-slate-800 font-bold text-base focus:outline-none focus:bg-indigo-50/30 focus:ring-2 focus:ring-indigo-100 transition-all border border-slate-100"
+              />
+            </div>
+
           </div>
 
           {formData.type === 'medicine' && (
@@ -418,7 +454,7 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
                     </div>
                  </div>
 
-                 <div>
+                 <div className="md:col-span-2">
                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Composition / Ingredients</label>
                    <textarea
                      name="components"
