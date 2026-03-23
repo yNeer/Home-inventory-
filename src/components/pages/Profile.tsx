@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaCog, FaSignOutAlt, FaShieldAlt, FaBell, FaDownload, FaCheckCircle, FaSpinner, FaApple, FaShareSquare, FaPlusSquare } from 'react-icons/fa';
+import { FaCog, FaSignOutAlt, FaShieldAlt, FaBell, FaDownload, FaCheckCircle, FaSpinner, FaApple, FaShareSquare, FaPlusSquare, FaChrome, FaEllipsisV } from 'react-icons/fa';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
 import { CamelMascot } from '../ui/CamelMascot';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,6 +10,16 @@ export const Profile: React.FC = () => {
   const [isInstalling, setIsInstalling] = useState(false);
   const [installSuccess, setInstallSuccess] = useState(false);
   const [showFallbackModal, setShowFallbackModal] = useState(false);
+
+  // Basic platform detection to show the most relevant instructions by default
+  const [platformTab, setPlatformTab] = useState<'ios' | 'chrome'>('ios');
+
+  useEffect(() => {
+    // Detect iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+    setPlatformTab(isIOS ? 'ios' : 'chrome');
+  }, []);
 
   useEffect(() => {
     if ('Notification' in window) {
@@ -169,34 +179,75 @@ export const Profile: React.FC = () => {
               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-2xl -mr-10 -mt-10"></div>
 
               <div className="relative z-10 flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 mb-4 shadow-inner">
-                  <FaApple size={30} />
+                <div className="flex items-center justify-center gap-4 mb-6 bg-slate-100 p-1.5 rounded-full w-full">
+                  <button
+                    onClick={() => setPlatformTab('ios')}
+                    className={`flex-1 py-2 px-4 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 ${platformTab === 'ios' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    <FaApple size={16} /> iOS / Safari
+                  </button>
+                  <button
+                    onClick={() => setPlatformTab('chrome')}
+                    className={`flex-1 py-2 px-4 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 ${platformTab === 'chrome' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    <FaChrome size={16} /> Chrome
+                  </button>
                 </div>
+
                 <h3 className="text-2xl font-bold text-slate-800 mb-2">Install App</h3>
-                <p className="text-slate-500 text-sm mb-6 leading-relaxed">
-                  To install this app on your device, please follow these steps:
+                <p className="text-slate-500 text-sm mb-6 leading-relaxed min-h-[40px]">
+                  {platformTab === 'ios' ? 'To install this app on your iOS device, follow these steps:' : 'To install this app on Chrome or Android, follow these steps:'}
                 </p>
 
-                <div className="w-full bg-slate-50 rounded-2xl p-4 border border-slate-100 mb-6 flex flex-col gap-4">
-                  <div className="flex items-center gap-4 text-left">
-                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-slate-600 shrink-0">
-                      1
-                    </div>
-                    <div className="text-sm font-medium text-slate-700 flex-1">
-                      Tap the <FaShareSquare className="inline text-blue-500 mx-1 mb-1" /> <strong>Share</strong> button in your browser.
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 text-left">
-                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-slate-600 shrink-0">
-                      2
-                    </div>
-                    <div className="text-sm font-medium text-slate-700 flex-1">
-                      Scroll down and select <br />
-                      <span className="inline-flex items-center gap-1 mt-1 bg-white px-2 py-1 rounded shadow-sm text-xs font-bold text-slate-800">
-                        <FaPlusSquare className="text-slate-400" /> Add to Home Screen
-                      </span>
-                    </div>
-                  </div>
+                <div className="w-full bg-slate-50 rounded-2xl p-4 border border-slate-100 mb-6 flex flex-col gap-4 min-h-[160px] justify-center">
+                  {platformTab === 'ios' ? (
+                    <>
+                      <div className="flex items-center gap-4 text-left">
+                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-slate-600 shrink-0 font-bold">
+                          1
+                        </div>
+                        <div className="text-sm font-medium text-slate-700 flex-1">
+                          Tap the <FaShareSquare className="inline text-blue-500 mx-1 mb-1" /> <strong>Share</strong> button in your browser.
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 text-left">
+                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-slate-600 shrink-0 font-bold">
+                          2
+                        </div>
+                        <div className="text-sm font-medium text-slate-700 flex-1">
+                          Scroll down and select <br />
+                          <span className="inline-flex items-center gap-1 mt-1 bg-white px-2 py-1 rounded shadow-sm text-xs font-bold text-slate-800">
+                            <FaPlusSquare className="text-slate-400" /> Add to Home Screen
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-4 text-left">
+                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-slate-600 shrink-0 font-bold">
+                          1
+                        </div>
+                        <div className="text-sm font-medium text-slate-700 flex-1">
+                          Tap the <FaEllipsisV className="inline text-slate-500 mx-1 mb-1" /> <strong>Menu</strong> icon in the top right corner of Chrome.
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 text-left">
+                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-slate-600 shrink-0 font-bold">
+                          2
+                        </div>
+                        <div className="text-sm font-medium text-slate-700 flex-1">
+                          Select <br />
+                          <span className="inline-flex items-center gap-1 mt-1 bg-white px-2 py-1 rounded shadow-sm text-xs font-bold text-slate-800">
+                            <FaDownload className="text-slate-400" /> Install App
+                          </span> or <br/>
+                          <span className="inline-flex items-center gap-1 mt-1 bg-white px-2 py-1 rounded shadow-sm text-xs font-bold text-slate-800">
+                            <FaPlusSquare className="text-slate-400" /> Add to Home Screen
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <button
