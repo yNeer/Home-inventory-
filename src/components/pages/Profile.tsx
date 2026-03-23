@@ -54,7 +54,7 @@ export const Profile: React.FC = () => {
           <span className="font-bold text-slate-700 flex-1">Privacy & Security</span>
         </button>
 
-        {isInstallable && (
+        {!isInstalled && (
           <div className="my-2 p-5 rounded-[24px] bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-200 flex flex-col sm:flex-row items-center gap-4 justify-between relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
             <div className="flex items-center gap-4 relative z-10 w-full sm:w-auto">
@@ -64,10 +64,17 @@ export const Profile: React.FC = () => {
                <div className="flex flex-col flex-1">
                  <span className="font-bold text-lg drop-shadow-sm">Install App</span>
                  <span className="text-sm font-medium text-blue-100">Get faster access & offline mode</span>
+                 {!isInstallable && <span className="text-[10px] text-blue-200 mt-1 uppercase tracking-wider font-bold">Use browser menu to add</span>}
                </div>
             </div>
             <button
-              onClick={installPWA}
+              onClick={() => {
+                 if (isInstallable) {
+                    installPWA();
+                 } else {
+                    alert("To install: tap 'Share' then 'Add to Home Screen' (iOS), or use your browser menu (Android/Desktop).");
+                 }
+              }}
               className="w-full sm:w-auto px-6 py-3 bg-white text-blue-600 font-extrabold rounded-xl shadow-sm hover:bg-blue-50 transition-colors active:scale-95 shrink-0 relative z-10"
             >
               Install Now
