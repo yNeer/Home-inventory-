@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { FaCog, FaSignOutAlt, FaShieldAlt, FaBell, FaDownload } from 'react-icons/fa';
+import { FaCog, FaSignOutAlt, FaShieldAlt, FaBell, FaDownload, FaCheckCircle, FaSpinner, FaApple, FaShareSquare, FaPlusSquare } from 'react-icons/fa';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
 import { CamelMascot } from '../ui/CamelMascot';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const Profile: React.FC = () => {
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default');
   const { isInstallable, installPWA, isInstalled } = usePWAInstall();
+  const [isInstalling, setIsInstalling] = useState(false);
+  const [installSuccess, setInstallSuccess] = useState(false);
+  const [showFallbackModal, setShowFallbackModal] = useState(false);
 
   useEffect(() => {
     if ('Notification' in window) {
@@ -54,33 +58,74 @@ export const Profile: React.FC = () => {
           <span className="font-bold text-slate-700 flex-1">Privacy & Security</span>
         </button>
 
-        {!isInstalled && (
-          <div className="my-2 p-5 rounded-[24px] bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-200 flex flex-col sm:flex-row items-center gap-4 justify-between relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
-            <div className="flex items-center gap-4 relative z-10 w-full sm:w-auto">
-               <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm border border-white/30 shrink-0">
-                 <FaDownload size={20} className="text-white drop-shadow-md" />
-               </div>
-               <div className="flex flex-col flex-1">
-                 <span className="font-bold text-lg drop-shadow-sm">Install App</span>
-                 <span className="text-sm font-medium text-blue-100">Get faster access & offline mode</span>
-                 {!isInstallable && <span className="text-[10px] text-blue-200 mt-1 uppercase tracking-wider font-bold">Use browser menu to add</span>}
-               </div>
-            </div>
-            <button
-              onClick={() => {
-                 if (isInstallable) {
-                    installPWA();
-                 } else {
-                    alert("To install: tap 'Share' then 'Add to Home Screen' (iOS), or use your browser menu (Android/Desktop).");
-                 }
-              }}
-              className="w-full sm:w-auto px-6 py-3 bg-white text-blue-600 font-extrabold rounded-xl shadow-sm hover:bg-blue-50 transition-colors active:scale-95 shrink-0 relative z-10"
+        <AnimatePresence>
+          {!isInstalled && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -10, filter: 'blur(10px)' }}
+              transition={{ duration: 0.4, type: 'spring', bounce: 0.4 }}
+              className="my-2 p-5 rounded-[24px] bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-200 flex flex-col sm:flex-row items-center gap-4 justify-between relative overflow-hidden group"
             >
-              Install Now
-            </button>
-          </div>
-        )}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+
+              <div className="flex items-center gap-4 relative z-10 w-full sm:w-auto">
+                 <motion.div
+                   animate={isInstalling ? { rotate: 360 } : installSuccess ? { scale: [1, 1.2, 1] } : {}}
+                   transition={isInstalling ? { repeat: Infinity, duration: 1, ease: "linear" } : { duration: 0.5 }}
+                   className={`w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-sm border shrink-0 ${installSuccess ? 'bg-emerald-400/20 border-emerald-400/50' : 'bg-white/20 border-white/30'}`}
+                 >
+                   {installSuccess ? (
+                     <FaCheckCircle size={22} className="text-emerald-300 drop-shadow-md" />
+                   ) : isInstalling ? (
+                     <FaSpinner size={20} className="text-white drop-shadow-md" />
+                   ) : (
+                     <FaDownload size={20} className="text-white drop-shadow-md" />
+                   )}
+                 </motion.div>
+                 <div className="flex flex-col flex-1">
+                   <span className="font-bold text-lg drop-shadow-sm">
+                     {installSuccess ? 'Installed!' : isInstalling ? 'Installing...' : 'Install App'}
+                   </span>
+                   <span className="text-sm font-medium text-blue-100">
+                     {installSuccess ? 'Ready for offline use' : 'Get faster access & offline mode'}
+                   </span>
+                   {!isInstallable && !installSuccess && <span className="text-[10px] text-blue-200 mt-1 uppercase tracking-wider font-bold">Use browser menu to add</span>}
+                 </div>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={async () => {
+                   if (isInstallable) {
+                      setIsInstalling(true);
+                      const outcome = await installPWA();
+                      setIsInstalling(false);
+                      if (outcome === 'accepted') {
+                        setInstallSuccess(true);
+                        // Hide the banner completely after a delay
+                        setTimeout(() => setInstallSuccess(false), 2000);
+                      }
+                   } else {
+                      setShowFallbackModal(true);
+                   }
+                }}
+                disabled={isInstalling || installSuccess}
+                className={`w-full sm:w-auto px-6 py-3 font-extrabold rounded-xl shadow-sm transition-all duration-300 shrink-0 relative z-10 flex items-center justify-center gap-2
+                  ${installSuccess
+                    ? 'bg-emerald-400 text-white'
+                    : isInstalling
+                      ? 'bg-blue-400 text-white/80 cursor-not-allowed'
+                      : 'bg-white text-blue-600 hover:bg-blue-50'
+                  }
+                `}
+              >
+                {installSuccess ? 'Success' : isInstalling ? 'Waiting...' : 'Install Now'}
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <button
           onClick={requestNotifs}
@@ -103,6 +148,68 @@ export const Profile: React.FC = () => {
         </button>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showFallbackModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+            onClick={() => setShowFallbackModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", bounce: 0.3 }}
+              className="bg-white rounded-[32px] p-6 max-w-sm w-full shadow-2xl relative overflow-hidden"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-2xl -mr-10 -mt-10"></div>
+
+              <div className="relative z-10 flex flex-col items-center text-center">
+                <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 mb-4 shadow-inner">
+                  <FaApple size={30} />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-800 mb-2">Install App</h3>
+                <p className="text-slate-500 text-sm mb-6 leading-relaxed">
+                  To install this app on your device, please follow these steps:
+                </p>
+
+                <div className="w-full bg-slate-50 rounded-2xl p-4 border border-slate-100 mb-6 flex flex-col gap-4">
+                  <div className="flex items-center gap-4 text-left">
+                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-slate-600 shrink-0">
+                      1
+                    </div>
+                    <div className="text-sm font-medium text-slate-700 flex-1">
+                      Tap the <FaShareSquare className="inline text-blue-500 mx-1 mb-1" /> <strong>Share</strong> button in your browser.
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 text-left">
+                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-slate-600 shrink-0">
+                      2
+                    </div>
+                    <div className="text-sm font-medium text-slate-700 flex-1">
+                      Scroll down and select <br />
+                      <span className="inline-flex items-center gap-1 mt-1 bg-white px-2 py-1 rounded shadow-sm text-xs font-bold text-slate-800">
+                        <FaPlusSquare className="text-slate-400" /> Add to Home Screen
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowFallbackModal(false)}
+                  className="w-full py-3.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors active:scale-95"
+                >
+                  Got it!
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

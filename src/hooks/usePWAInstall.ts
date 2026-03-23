@@ -38,7 +38,7 @@ export const usePWAInstall = () => {
   }, []);
 
   const installPWA = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) return null;
 
     // Show the install prompt
     await deferredPrompt.prompt();
@@ -52,6 +52,8 @@ export const usePWAInstall = () => {
     if (outcome === 'accepted') {
       setIsInstalled(true);
     }
+
+    return outcome;
   };
 
   return {
