@@ -55,18 +55,24 @@ export const Profile: React.FC = () => {
         </button>
 
         {isInstallable && (
-          <button
-            onClick={installPWA}
-            className="flex items-center gap-4 w-full p-4 rounded-[20px] hover:bg-slate-50 transition-colors text-left active:bg-slate-100 group"
-          >
-            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
-              <FaDownload size={18} />
+          <div className="my-2 p-5 rounded-[24px] bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-200 flex flex-col sm:flex-row items-center gap-4 justify-between relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+            <div className="flex items-center gap-4 relative z-10 w-full sm:w-auto">
+               <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm border border-white/30 shrink-0">
+                 <FaDownload size={20} className="text-white drop-shadow-md" />
+               </div>
+               <div className="flex flex-col flex-1">
+                 <span className="font-bold text-lg drop-shadow-sm">Install App</span>
+                 <span className="text-sm font-medium text-blue-100">Get faster access & offline mode</span>
+               </div>
             </div>
-            <div className="flex flex-col flex-1">
-               <span className="font-bold text-slate-700">Install App</span>
-               <span className="text-xs font-medium text-slate-400">Add to Home Screen</span>
-            </div>
-          </button>
+            <button
+              onClick={installPWA}
+              className="w-full sm:w-auto px-6 py-3 bg-white text-blue-600 font-extrabold rounded-xl shadow-sm hover:bg-blue-50 transition-colors active:scale-95 shrink-0 relative z-10"
+            >
+              Install Now
+            </button>
+          </div>
         )}
 
         <button
