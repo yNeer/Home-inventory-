@@ -68,6 +68,26 @@ export const Profile: React.FC = () => {
           <span className="font-bold text-slate-700 flex-1">Privacy & Security</span>
         </button>
 
+        {/* Primary Install App Button - Copied from Sidebar for mobile visibility */}
+        {!isInstalled && isInstallable && (
+          <button
+            onClick={async () => {
+              setIsInstalling(true);
+              const outcome = await installPWA();
+              setIsInstalling(false);
+              if (outcome === 'accepted') {
+                setInstallSuccess(true);
+                setTimeout(() => setInstallSuccess(false), 2000);
+              }
+            }}
+            disabled={isInstalling || installSuccess}
+            className="w-full h-14 mt-2 bg-white text-blue-600 border-2 border-blue-100 rounded-2xl shadow-sm flex items-center justify-center gap-2 font-bold hover:bg-blue-50 transition-colors active:scale-95"
+          >
+            {installSuccess ? <FaCheckCircle size={16} /> : isInstalling ? <FaSpinner size={16} className="animate-spin" /> : <FaDownload size={16} />}
+            <span>{installSuccess ? 'Installed!' : isInstalling ? 'Installing...' : 'Install App'}</span>
+          </button>
+        )}
+
         <AnimatePresence>
           {!isInstalled && (
             <motion.div
@@ -104,46 +124,18 @@ export const Profile: React.FC = () => {
                  </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                {isInstallable && (
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={async () => {
-                       setIsInstalling(true);
-                       const outcome = await installPWA();
-                       setIsInstalling(false);
-                       if (outcome === 'accepted') {
-                         setInstallSuccess(true);
-                         setTimeout(() => setInstallSuccess(false), 2000);
-                       }
-                    }}
-                    disabled={isInstalling || installSuccess}
-                    className={`w-full sm:w-auto px-6 py-3 font-extrabold rounded-xl shadow-sm transition-all duration-300 shrink-0 relative z-10 flex items-center justify-center gap-2
-                      ${installSuccess
-                        ? 'bg-emerald-400 text-white'
-                        : isInstalling
-                          ? 'bg-blue-400 text-white/80 cursor-not-allowed'
-                          : 'bg-white text-blue-600 hover:bg-blue-50'
-                      }
-                    `}
-                  >
-                    {installSuccess ? 'Success' : isInstalling ? 'Waiting...' : 'Install App'}
-                  </motion.button>
-                )}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                     setShowFallbackModal(true);
-                     setPlatformTab('ios');
-                  }}
-                  className={`w-full sm:w-auto px-6 py-3 font-extrabold rounded-xl shadow-sm transition-all duration-300 shrink-0 relative z-10 flex items-center justify-center gap-2 bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm`}
-                >
-                  <FaApple size={18} />
-                  on iOS
-                </motion.button>
-              </div>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                   setShowFallbackModal(true);
+                   setPlatformTab('ios');
+                }}
+                className={`w-full sm:w-auto px-6 py-3 font-extrabold rounded-xl shadow-sm transition-all duration-300 shrink-0 relative z-10 flex items-center justify-center gap-2 bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm`}
+              >
+                <FaApple size={18} />
+                on iOS
+              </motion.button>
             </motion.div>
           )}
         </AnimatePresence>
