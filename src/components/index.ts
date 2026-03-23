@@ -1,6 +1,4 @@
-import { Profile } from './pages/Profile';
-import { HealthPlan } from './pages/HealthPlan';
-import { Notifications } from './pages/Notifications';
-import { Medicines } from './pages/Medicines';
-
-export { Profile, HealthPlan, Notifications, Medicines };
+export { Profile } from './pages/Profile';
+export { InventoryList } from './pages/InventoryList';
+export { Notifications } from './pages/Notifications';
+export { Medicines } from './pages/Medicines';

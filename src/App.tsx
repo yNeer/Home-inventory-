@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import Dashboard from './components/Dashboard';
 import AddItem from './components/AddItem';
-import { HealthPlan, Profile, Notifications, Medicines } from './components';
-import { FaHome, FaHeartbeat, FaUserCircle, FaPlus, FaBell, FaPills, FaDownload } from 'react-icons/fa';
+import { InventoryList, Profile, Notifications, Medicines } from './components';
+import { FaHome, FaBoxOpen, FaUserCircle, FaPlus, FaBell, FaPills, FaDownload } from 'react-icons/fa';
 import { usePWAInstall } from './hooks/usePWAInstall';
 import { AppLogo } from './components/ui/AppLogo';
 import './App.css';
 
-type ViewState = 'dashboard' | 'health' | 'profile' | 'add' | 'notifications' | 'medicines';
+type ViewState = 'dashboard' | 'inventory' | 'profile' | 'add' | 'notifications' | 'medicines';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
@@ -41,8 +41,8 @@ function App() {
         return <Dashboard onAddNew={() => handleAddNew('grocery')} onNotifications={() => setCurrentView('notifications')} />;
       case 'medicines':
         return <Medicines onAddNew={() => handleAddNew('medicine')} />;
-      case 'health':
-        return <HealthPlan />;
+      case 'inventory':
+        return <InventoryList />;
       case 'profile':
         return <Profile />;
       case 'notifications':
@@ -74,9 +74,9 @@ function App() {
               <FaPills size={20} className={currentView === 'medicines' ? 'drop-shadow-sm' : ''} />
               <span>Medicines</span>
             </button>
-            <button onClick={() => setCurrentView('health')} className={`flex items-center gap-4 w-full px-6 py-4 rounded-2xl font-bold transition-all ${currentView === 'health' ? 'bg-emerald-50 text-emerald-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}>
-              <FaHeartbeat size={20} className={currentView === 'health' ? 'drop-shadow-sm' : ''} />
-              <span>Health Plan</span>
+            <button onClick={() => setCurrentView('inventory')} className={`flex items-center gap-4 w-full px-6 py-4 rounded-2xl font-bold transition-all ${currentView === 'inventory' ? 'bg-emerald-50 text-emerald-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}>
+              <FaBoxOpen size={20} className={currentView === 'inventory' ? 'drop-shadow-sm' : ''} />
+              <span>Inventory</span>
             </button>
             <button onClick={() => setCurrentView('profile')} className={`flex items-center gap-4 w-full px-6 py-4 rounded-2xl font-bold transition-all ${currentView === 'profile' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}>
               <FaUserCircle size={20} className={currentView === 'profile' ? 'drop-shadow-sm' : ''} />
@@ -143,11 +143,11 @@ function App() {
               </div>
 
               <button
-                onClick={() => setCurrentView('health')}
-                className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all ${currentView === 'health' ? 'text-emerald-500' : 'text-slate-400 hover:text-slate-600'}`}
+                onClick={() => setCurrentView('inventory')}
+                className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all ${currentView === 'inventory' ? 'text-emerald-500' : 'text-slate-400 hover:text-slate-600'}`}
               >
-                <FaHeartbeat size={22} className={currentView === 'health' ? 'scale-110 drop-shadow-sm' : ''} />
-                <span className="text-[10px] font-bold mt-1 tracking-wider uppercase hidden sm:block">Plan</span>
+                <FaBoxOpen size={22} className={currentView === 'inventory' ? 'scale-110 drop-shadow-sm' : ''} />
+                <span className="text-[10px] font-bold mt-1 tracking-wider uppercase hidden sm:block">Items</span>
               </button>
 
               <button
