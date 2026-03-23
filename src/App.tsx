@@ -38,7 +38,12 @@ function App() {
   const renderView = () => {
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard onAddNew={() => handleAddNew('grocery')} onNotifications={() => setCurrentView('notifications')} />;
+        return <Dashboard
+                  onAddNew={() => handleAddNew('grocery')}
+                  onNotifications={() => setCurrentView('notifications')}
+                  onViewInventory={() => setCurrentView('inventory')}
+                  onViewMedicines={() => setCurrentView('medicines')}
+                />;
       case 'medicines':
         return <Medicines onAddNew={() => handleAddNew('medicine')} />;
       case 'inventory':
@@ -50,7 +55,12 @@ function App() {
       case 'add':
         return <AddItem onBack={() => setCurrentView('dashboard')} initialType={addItemType} />;
       default:
-        return <Dashboard onAddNew={() => handleAddNew('grocery')} onNotifications={() => setCurrentView('notifications')} />;
+        return <Dashboard
+                  onAddNew={() => handleAddNew('grocery')}
+                  onNotifications={() => setCurrentView('notifications')}
+                  onViewInventory={() => setCurrentView('inventory')}
+                  onViewMedicines={() => setCurrentView('medicines')}
+                />;
     }
   };
 

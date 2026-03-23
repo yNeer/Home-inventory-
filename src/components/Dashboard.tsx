@@ -4,13 +4,16 @@ import { db } from '../db';
 import { FaBoxOpen, FaPlus, FaSearch, FaBell, FaDownload, FaSpinner } from 'react-icons/fa';
 import { ItemCard } from './cards/ItemCard';
 import { usePWAInstall } from '../hooks/usePWAInstall';
+import { FaChevronRight } from 'react-icons/fa';
 
 interface DashboardProps {
   onAddNew: () => void;
   onNotifications?: () => void;
+  onViewInventory?: () => void;
+  onViewMedicines?: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications, onViewInventory, onViewMedicines }) => {
   const items = useLiveQuery(() => db.items.toArray(), []);
   const [searchQuery, setSearchQuery] = useState('');
   const { isInstallable, installPWA, isInstalled } = usePWAInstall();
@@ -126,16 +129,58 @@ const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications }) => {
           );
         }
 
+        const renderSection = (title: string, data: typeof items, viewMoreHandler?: () => void) => {
+          if (data.length === 0) return null;
+          const displayItems = data.slice(0, 5);
+          const hasMore = data.length > 5;
+
+          return (
+            <div className="flex flex-col gap-4 mb-8">
+              <div className="flex justify-between items-center mb-2">
+                 <h2 className="text-xl md:text-2xl font-bold text-slate-800 tracking-tight">{title}</h2>
+                 {hasMore && viewMoreHandler && (
+                   <button
+                     onClick={viewMoreHandler}
+                     className="text-sm font-bold text-indigo-500 hover:text-indigo-600 flex items-center gap-1 bg-indigo-50 px-3 py-1.5 rounded-full transition-colors"
+                   >
+                     View All <FaChevronRight size={10} />
+                   </button>
+                 )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {displayItems.map(item => (
+                  <ItemCard key={item.id} item={item} onDelete={handleDelete} />
+                ))}
+              </div>
+            </div>
+          );
+        };
+
+        // Categorize items
+        const now = new Date();
+        const thirtyDaysFromNow = new Date();
+        thirtyDaysFromNow.setDate(now.getDate() + 30);
+
+        const expiringItems = filteredItems.filter(item => {
+          if (!item.expiryDate) return false;
+          const expiry = new Date(item.expiryDate);
+          return expiry <= thirtyDaysFromNow;
+        }).sort((a, b) => new Date(a.expiryDate!).getTime() - new Date(b.expiryDate!).getTime());
+
+        const medicineItems = filteredItems.filter(item => item.type === 'medicine');
+        const groceryItems = filteredItems.filter(item => item.type === 'grocery');
+
         return (
-          <div className="flex flex-col gap-6">
-            <div className="flex justify-between items-end mb-2">
-               <h2 className="text-xl md:text-2xl font-bold text-slate-800 tracking-tight">My Items</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredItems.map(item => (
-                <ItemCard key={item.id} item={item} onDelete={handleDelete} />
-              ))}
-            </div>
+          <div className="flex flex-col gap-2">
+            {renderSection("Near Expiry", expiringItems, onViewInventory)}
+            {renderSection("Medicines", medicineItems, onViewMedicines)}
+            {renderSection("Groceries", groceryItems, onViewInventory)}
+
+            {expiringItems.length === 0 && medicineItems.length === 0 && groceryItems.length === 0 && (
+              <div className="text-center py-10">
+                 <p className="text-slate-500 font-medium">No items match your criteria.</p>
+              </div>
+            )}
           </div>
         );
       })()}
