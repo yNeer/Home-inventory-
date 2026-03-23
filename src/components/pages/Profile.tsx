@@ -5,7 +5,7 @@ import { CamelMascot } from '../ui/CamelMascot';
 
 export const Profile: React.FC = () => {
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default');
-  const { isInstallable, installPWA } = usePWAInstall();
+  const { isInstallable, installPWA, isInstalled } = usePWAInstall();
 
   useEffect(() => {
     if ('Notification' in window) {
