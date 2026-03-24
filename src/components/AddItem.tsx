@@ -54,7 +54,13 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
       setImagePreview(dataUrl); // Show the cleaned image to user
 
       // 2. Try to find barcode in the original image (barcode scanners prefer color/unaltered)
-      const decodedBarcode = await extractBarcodeFromImage(file);
+      let decodedBarcode = null;
+      try {
+        decodedBarcode = await extractBarcodeFromImage(file);
+      } catch (err) {
+        console.warn("Barcode extraction failed, continuing without it.", err);
+      }
+
       let productName = formData.name;
       let barcodeVal = formData.barcode;
       let descriptionVal = formData.description;
@@ -62,16 +68,25 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
 
       if (decodedBarcode) {
          barcodeVal = decodedBarcode;
-         const product = await lookupBarcode(decodedBarcode);
-         if (product) {
-           productName = product.name;
-           if (product.description) descriptionVal = product.description;
-           if (product.details) detailsVal = product.details;
+         try {
+           const product = await lookupBarcode(decodedBarcode);
+           if (product) {
+             productName = product.name;
+             if (product.description) descriptionVal = product.description;
+             if (product.details) detailsVal = product.details;
+           }
+         } catch (err) {
+           console.warn("Product lookup failed, continuing.", err);
          }
       }
 
       // 3. OCR for dates, mrp, batch, ingredients on CLEANED image
-      const extractedData = await processImageWithOCR(processedFile);
+      let extractedData = {} as any;
+      try {
+        extractedData = await processImageWithOCR(processedFile);
+      } catch (err) {
+        console.warn("OCR failed, continuing with whatever was found earlier.", err);
+      }
 
       setFormData(prev => ({
         ...prev,
@@ -86,8 +101,8 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
         components: extractedData.components || prev.components
       }));
     } catch (error) {
-      console.error("Smart Scan failed", error);
-      alert("Failed to extract full details. Please check form manually.");
+      console.error("Smart Scan core processing failed", error);
+      alert("Failed to process image. Please enter details manually.");
     } finally {
       setLoading(false);
     }
@@ -113,17 +128,23 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
     try {
        // Clean image offline first
        const { processedFile } = await processImageForOCR(file);
-       const extractedData = await processImageWithOCR(processedFile);
-       setFormData(prev => ({
-         ...prev,
-         price: extractedData.price || prev.price,
-         mfgDate: extractedData.mfgDate || prev.mfgDate,
-         expiryDate: extractedData.expiryDate || prev.expiryDate,
-         batchNo: extractedData.batchNo || prev.batchNo,
-         components: extractedData.components || prev.components
-       }));
+       try {
+         const extractedData = await processImageWithOCR(processedFile);
+         setFormData(prev => ({
+           ...prev,
+           price: extractedData.price || prev.price,
+           mfgDate: extractedData.mfgDate || prev.mfgDate,
+           expiryDate: extractedData.expiryDate || prev.expiryDate,
+           batchNo: extractedData.batchNo || prev.batchNo,
+           components: extractedData.components || prev.components
+         }));
+       } catch (err) {
+         console.warn("Details OCR read failed", err);
+         alert("Could not extract details clearly from this image.");
+       }
     } catch (error) {
-       console.error("Details OCR failed", error);
+       console.error("Details image processing failed", error);
+       alert("Failed to process details image.");
     } finally {
        setLoading(false);
     }
