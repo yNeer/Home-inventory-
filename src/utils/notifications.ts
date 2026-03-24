@@ -1,9 +1,16 @@
 /**
- * Utility for handling Native PWA / Browser Notifications
- * Works across Desktop, Android, and iOS (if installed as PWA and supported)
+ * Utility for handling Native PWA / Browser / Capacitor Native Notifications
  */
+import { Capacitor } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 export const requestNotificationPermission = async (): Promise<boolean> => {
+  if (Capacitor.isNativePlatform()) {
+    const permStatus = await LocalNotifications.requestPermissions();
+    return permStatus.display === 'granted';
+  }
+
+  // Web fallback
   if (!("Notification" in window)) {
     console.warn("This browser does not support desktop notifications.");
     return false;
@@ -32,16 +39,31 @@ export const scheduleLocalNotification = async (title: string, body: string, del
   const delayMs = delayMinutes * 60 * 1000;
   console.log(`Scheduling local notification for ${delayMinutes} minutes from now...`);
 
-  // Local timeout for when the app is currently open/running in background tab
+  if (Capacitor.isNativePlatform()) {
+     // True native Android/iOS background push scheduling
+     await LocalNotifications.schedule({
+        notifications: [
+          {
+            title: title,
+            body: body,
+            id: new Date().getTime(),
+            schedule: { at: new Date(Date.now() + delayMs) },
+            smallIcon: "ic_stat_icon_config_sample"
+          }
+        ]
+     });
+     return true;
+  }
+
+  // Web/PWA Local timeout for when the app is currently open/running in background tab
   setTimeout(async () => {
-    // Prefer ServiceWorker for better PWA native integration (Android/iOS)
     if ('serviceWorker' in navigator) {
        const registration = await navigator.serviceWorker.getRegistration();
        if (registration && 'showNotification' in registration) {
            registration.showNotification(title, {
                body,
                icon: '/pwa-192x192.png',
-               badge: '/masked-icon.svg',
+               badge: '/favicon.ico',
                vibrate: [200, 100, 200],
                tag: 'med-reminder', // Groups similar notifications
                renotify: true
@@ -50,7 +72,6 @@ export const scheduleLocalNotification = async (title: string, body: string, del
        }
     }
 
-    // Fallback to standard browser notification API (Desktop)
     new Notification(title, {
         body,
         icon: '/pwa-192x192.png'

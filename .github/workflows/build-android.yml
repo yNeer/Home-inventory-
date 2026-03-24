@@ -44,6 +44,13 @@ jobs:
         npx cap add android
         npx cap sync android
 
+    - name: Generate Capacitor Assets
+      run: |
+        mkdir -p assets
+        cp public/logo2.png assets/icon.png
+        cp public/logo2.png assets/splash.png
+        npx capacitor-assets generate
+
     - name: Build Android APK
       working-directory: ./android
       run: ./gradlew assembleDebug --no-daemon
