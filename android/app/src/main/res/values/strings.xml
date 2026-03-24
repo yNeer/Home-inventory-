@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">HomeInventoryApp</string>
+    <string name="title_activity_main">HomeInventoryApp</string>
+    <string name="package_name">app.home.inventory</string>
+    <string name="custom_url_scheme">app.home.inventory</string>
+</resources>
