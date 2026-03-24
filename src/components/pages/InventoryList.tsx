@@ -3,12 +3,15 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db';
 import { FaBoxOpen, FaSearch, FaLeaf, FaExclamationTriangle, FaTrashAlt, FaCheckCircle, FaFireAlt } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import { EditItemModal } from '../EditItemModal';
+import { InventoryItem } from '../../db';
 
 type TabType = 'All' | 'Fresh' | 'Near Expiry' | 'Expired';
 
 export const InventoryList: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
 
   // Fetch all items
   const allItems = useLiveQuery(() => db.items.toArray(), []) || [];
@@ -158,6 +161,7 @@ export const InventoryList: React.FC = () => {
                      handleDelete(item.id);
                   }
                 }}
+                onClick={() => setEditingItem(item)}
                 className="bg-white rounded-[24px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative overflow-hidden group cursor-grab active:cursor-grabbing"
               >
                 {/* Background hint for swipe to delete */}
@@ -209,6 +213,14 @@ export const InventoryList: React.FC = () => {
           )}
         </AnimatePresence>
       </div>
+
+      {editingItem && (
+         <EditItemModal
+            item={editingItem}
+            onClose={() => setEditingItem(null)}
+            onUpdate={() => {}}
+         />
+      )}
     </div>
   );
 };

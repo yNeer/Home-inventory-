@@ -3,6 +3,8 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db';
 import { FaPills, FaSearch, FaPlus } from 'react-icons/fa';
 import { ItemCard } from '../cards/ItemCard';
+import { EditItemModal } from '../EditItemModal';
+import { InventoryItem } from '../../db';
 
 interface MedicinesProps {
   onAddNew: (type: 'medicine') => void;
@@ -11,6 +13,7 @@ interface MedicinesProps {
 export const Medicines: React.FC<MedicinesProps> = ({ onAddNew }) => {
   const items = useLiveQuery(() => db.items.where('type').equals('medicine').toArray(), []);
   const [searchQuery, setSearchQuery] = useState('');
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
 
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this medicine?')) {
@@ -84,13 +87,22 @@ export const Medicines: React.FC<MedicinesProps> = ({ onAddNew }) => {
           <div className="flex flex-col gap-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredItems.map(item => (
-                <ItemCard key={item.id} item={item} onDelete={handleDelete} />
+                <div key={item.id} onClick={() => setEditingItem(item)} className="cursor-pointer">
+                   <ItemCard item={item} onDelete={handleDelete} />
+                </div>
               ))}
             </div>
           </div>
         );
       })()}
 
+      {editingItem && (
+         <EditItemModal
+            item={editingItem}
+            onClose={() => setEditingItem(null)}
+            onUpdate={() => {}}
+         />
+      )}
     </div>
   );
 };

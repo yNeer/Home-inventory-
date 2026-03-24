@@ -6,6 +6,7 @@ import { extractBarcodeFromImage } from '../utils/barcodeExtractor';
 import { processImageForOCR } from '../utils/imageProcessor';
 import BarcodeScanner from './BarcodeScanner';
 import { FaCamera, FaSpinner, FaArrowLeft, FaCheck, FaBarcode, FaMagic, FaImages } from 'react-icons/fa';
+import { scheduleLocalNotification } from '../utils/notifications';
 
 interface AddItemProps {
   onBack: () => void;
@@ -34,7 +35,10 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
     description: '',
     details: '',
     reminderOption: 'none',
-    medicineTiming: 'any'
+    medicineTiming: 'any',
+    doseAmount: '',
+    reminderTimes: ['08:00'],
+    reminderDays: []
   });
 
   // Smart Scan: One image for everything (back of product usually)
@@ -198,6 +202,33 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
         ...formData,
         image: imagePreview || undefined
       });
+
+      // Schedule initial notification if recurring is set
+      if (formData.type === 'medicine' && formData.reminderOption !== 'none') {
+          // Calculate when the next notification should fire based on times array
+          const now = new Date();
+          let nextMs = 0;
+          if (formData.reminderTimes && formData.reminderTimes.length > 0) {
+              const timeParts = formData.reminderTimes[0].split(':');
+              const target = new Date();
+              target.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
+              if (target.getTime() < now.getTime()) {
+                  target.setDate(target.getDate() + 1); // tomorrow
+              }
+              nextMs = target.getTime() - now.getTime();
+          }
+
+          if (nextMs > 0) {
+              scheduleLocalNotification(
+                 `Time for ${formData.name}`,
+                 `It's time for your ${formData.doseAmount || 'medicine'}.`,
+                 Math.floor(nextMs / 60000), // delay in minutes
+                 imagePreview || undefined,
+                 { times: formData.reminderTimes || [], days: formData.reminderDays || [], type: formData.reminderOption || 'daily' }
+              );
+          }
+      }
+
       onBack();
     } catch (error) {
       console.error("Error saving item", error);
@@ -503,6 +534,7 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
                       <option value="none">Off</option>
                       <option value="daily">Daily</option>
                       <option value="weekly">Weekly</option>
+                      <option value="custom_days">Custom Days</option>
                       <option value="monthly">Monthly</option>
                     </select>
                  </div>
@@ -523,6 +555,85 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
                     </select>
                  </div>
               </div>
+
+              {/* Advanced Reminder Settings if Enabled */}
+              {formData.reminderOption !== 'none' && (
+                <div className="bg-white rounded-[32px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-100 flex flex-col gap-4 mt-4">
+                  {formData.reminderOption === 'custom_days' && (
+                     <div>
+                       <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3 block">Days of Week</label>
+                       <div className="flex gap-2 justify-between">
+                         {['S','M','T','W','T','F','S'].map((day, idx) => {
+                           const isSelected = formData.reminderDays?.includes(idx);
+                           return (
+                             <button
+                               type="button"
+                               key={idx}
+                               onClick={() => {
+                                 const days = formData.reminderDays || [];
+                                 if (isSelected) setFormData(p => ({...p, reminderDays: days.filter(d => d !== idx)}));
+                                 else setFormData(p => ({...p, reminderDays: [...days, idx]}));
+                               }}
+                               className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${isSelected ? 'bg-rose-500 text-white shadow-md shadow-rose-200' : 'bg-slate-100 text-slate-400'}`}
+                             >
+                               {day}
+                             </button>
+                           );
+                         })}
+                       </div>
+                     </div>
+                  )}
+
+                  <div className="flex flex-col gap-3">
+                    <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Reminder Times</label>
+                    {formData.reminderTimes?.map((time, idx) => (
+                      <div key={idx} className="flex gap-3">
+                        <input
+                          type="time"
+                          value={time}
+                          onChange={(e) => {
+                            const newTimes = [...(formData.reminderTimes || [])];
+                            newTimes[idx] = e.target.value;
+                            setFormData(p => ({...p, reminderTimes: newTimes}));
+                          }}
+                          className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-slate-800 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:bg-white transition-all shadow-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                             const newTimes = [...(formData.reminderTimes || [])];
+                             newTimes.splice(idx, 1);
+                             setFormData(p => ({...p, reminderTimes: newTimes}));
+                          }}
+                          disabled={(formData.reminderTimes?.length || 0) <= 1}
+                          className="w-12 h-full bg-rose-50 rounded-2xl text-rose-500 flex items-center justify-center font-bold text-xl disabled:opacity-30 disabled:bg-slate-50 disabled:text-slate-400"
+                        >
+                          -
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setFormData(p => ({...p, reminderTimes: [...(p.reminderTimes || []), '08:00']}))}
+                      className="w-full py-3 border-2 border-dashed border-slate-200 text-slate-500 font-bold rounded-2xl hover:bg-slate-50 transition-colors mt-1"
+                    >
+                      + Add Time
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-2 block">Dose Amount</label>
+                    <input
+                      type="text"
+                      name="doseAmount"
+                      placeholder="e.g. 1 Tablet, 10ml"
+                      value={formData.doseAmount}
+                      onChange={handleChange}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-slate-800 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:bg-white transition-all shadow-sm placeholder:text-slate-400 placeholder:font-medium"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

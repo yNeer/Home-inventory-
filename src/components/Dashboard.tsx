@@ -5,6 +5,8 @@ import { FaBoxOpen, FaPlus, FaSearch, FaBell, FaDownload, FaSpinner } from 'reac
 import { ItemCard } from './cards/ItemCard';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { FaChevronRight } from 'react-icons/fa';
+import { EditItemModal } from './EditItemModal';
+import { InventoryItem } from '../db';
 
 interface DashboardProps {
   onAddNew: () => void;
@@ -16,6 +18,7 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications, onViewInventory, onViewMedicines }) => {
   const items = useLiveQuery(() => db.items.toArray(), []);
   const [searchQuery, setSearchQuery] = useState('');
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const { isInstallable, installPWA, isInstalled } = usePWAInstall();
   const [isInstalling, setIsInstalling] = useState(false);
 
@@ -149,7 +152,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications, onView
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {displayItems.map(item => (
-                  <ItemCard key={item.id} item={item} onDelete={handleDelete} />
+                  <div key={item.id} onClick={() => setEditingItem(item)} className="cursor-pointer">
+                     <ItemCard item={item} onDelete={handleDelete} />
+                  </div>
                 ))}
               </div>
             </div>
@@ -185,6 +190,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications, onView
         );
       })()}
 
+      {editingItem && (
+         <EditItemModal
+            item={editingItem}
+            onClose={() => setEditingItem(null)}
+            onUpdate={() => {}}
+         />
+      )}
     </div>
   );
 };

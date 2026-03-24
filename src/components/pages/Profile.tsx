@@ -3,9 +3,12 @@ import { FaCog, FaSignOutAlt, FaShieldAlt, FaBell, FaDownload, FaCheckCircle, Fa
 import { usePWAInstall } from '../../hooks/usePWAInstall';
 import { SquirrelMascot } from '../ui/SquirrelMascot';
 import { motion, AnimatePresence } from 'framer-motion';
+import { requestNotificationPermission } from '../../utils/notifications';
+import { Capacitor } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 export const Profile: React.FC = () => {
-  const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default');
+  const [notifPermission, setNotifPermission] = useState<string>('default');
   const { isInstallable, installPWA, isInstalled } = usePWAInstall();
   const [isInstalling, setIsInstalling] = useState(false);
   const [installSuccess, setInstallSuccess] = useState(false);
@@ -22,15 +25,30 @@ export const Profile: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if ('Notification' in window) {
-      setNotifPermission(Notification.permission);
-    }
+    const checkPerm = async () => {
+      if (Capacitor.isNativePlatform()) {
+        const status = await LocalNotifications.checkPermissions();
+        setNotifPermission(status.display);
+      } else if ('Notification' in window) {
+        setNotifPermission(Notification.permission);
+      }
+    };
+    checkPerm();
   }, []);
 
   const requestNotifs = async () => {
-    if (!('Notification' in window)) return;
-    const perm = await Notification.requestPermission();
-    setNotifPermission(perm);
+    const granted = await requestNotificationPermission();
+    if (Capacitor.isNativePlatform()) {
+       const status = await LocalNotifications.checkPermissions();
+       setNotifPermission(status.display);
+       if (!granted) {
+          alert('Please enable notifications in your device settings.');
+       }
+    } else {
+       if ('Notification' in window) {
+          setNotifPermission(Notification.permission);
+       }
+    }
   };
   return (
     <div className="min-h-full px-6 md:px-10 lg:px-12 pt-safe pb-32 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">

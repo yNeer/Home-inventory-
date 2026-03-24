@@ -11,10 +11,13 @@ export interface InventoryItem {
   batchNo?: string;
   components?: string;
   barcode?: string;
-  reminderOption?: 'none' | 'daily' | 'weekly' | 'monthly';
+  reminderOption?: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom_days';
   medicineTiming?: 'before_food' | 'after_food' | 'any';
+  reminderTimes?: string[]; // Array of 'HH:MM' strings (e.g., ['08:00', '20:00'])
+  reminderDays?: number[]; // Array of 1-7 representing Mon-Sun for custom_days
   totalQuantity?: number;
   dailyDose?: number;
+  doseAmount?: string; // e.g., "1 Pill", "10ml"
   description?: string;
   details?: string;
   image?: string;
@@ -54,6 +57,16 @@ export class HomeInventoryDB extends Dexie {
     // Version 5 Schema update: Added description and details properties
     this.version(5).stores({
       items: '++id, name, type, purchaseDate, mfgDate, expiryDate, price, batchNo, components, barcode, reminderOption, medicineTiming, totalQuantity, dailyDose, description, details, image'
+    });
+    // Version 6 Schema update: Added advanced reminder properties
+    this.version(6).stores({
+      items: '++id, name, type, purchaseDate, mfgDate, expiryDate, price, batchNo, components, barcode, reminderOption, medicineTiming, reminderTimes, reminderDays, totalQuantity, dailyDose, doseAmount, description, details, image'
+    }).upgrade(tx => {
+       return tx.table('items').toCollection().modify(item => {
+           if (item.reminderTimes === undefined) item.reminderTimes = [];
+           if (item.reminderDays === undefined) item.reminderDays = [];
+           if (item.doseAmount === undefined) item.doseAmount = '';
+       });
     });
   }
 }
