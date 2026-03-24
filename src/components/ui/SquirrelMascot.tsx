@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 
 interface MascotProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-export const CamelMascot: React.FC<MascotProps> = ({ className = '', ...props }) => (
+export const SquirrelMascot: React.FC<MascotProps> = ({ className = '', ...props }) => (
   <motion.div
     className={`relative w-full h-full flex items-center justify-center ${className}`}
     initial={{ y: 0 }}

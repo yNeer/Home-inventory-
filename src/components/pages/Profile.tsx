@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaCog, FaSignOutAlt, FaShieldAlt, FaBell, FaDownload, FaCheckCircle, FaSpinner, FaApple, FaShareSquare, FaPlusSquare, FaChrome, FaEllipsisV } from 'react-icons/fa';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
-import { CamelMascot } from '../ui/CamelMascot';
+import { SquirrelMascot } from '../ui/SquirrelMascot';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const Profile: React.FC = () => {
@@ -48,10 +48,10 @@ export const Profile: React.FC = () => {
           <div className="absolute top-0 right-0 w-64 h-64 bg-amber-50 rounded-full blur-3xl -mr-20 -mt-20 opacity-60"></div>
 
           <div className="w-40 h-40 shrink-0 relative z-10 drop-shadow-xl transition-transform hover:scale-105 duration-300 mb-4">
-             <CamelMascot />
+             <SquirrelMascot />
           </div>
-          <h2 className="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight mb-1 z-10">Inventory Camel</h2>
-          <p className="text-amber-500 font-bold uppercase tracking-widest text-sm z-10">Your Mascot</p>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight mb-1 z-10 text-center">Inventory Squirrel</h2>
+          <p className="text-amber-500 font-bold uppercase tracking-widest text-xs mt-2 z-10 text-center px-4 leading-relaxed">Don't forget your inventory like a squirrel, you don't have to follow.</p>
         </div>
 
         <div className="col-span-1 md:col-span-2 bg-white rounded-[32px] p-4 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col gap-2">
