@@ -5,6 +5,7 @@ import { FaBoxOpen, FaSearch, FaLeaf, FaExclamationTriangle, FaTrashAlt, FaCheck
 import { motion, AnimatePresence } from 'framer-motion';
 import { EditItemModal } from '../EditItemModal';
 import { InventoryItem } from '../../db';
+import { cancelLocalNotifications } from '../../utils/notifications';
 
 type TabType = 'All' | 'Fresh' | 'Near Expiry' | 'Expired';
 
@@ -49,6 +50,7 @@ export const InventoryList: React.FC = () => {
 
   const handleDelete = async (id?: number) => {
     if (id) {
+        await cancelLocalNotifications(id);
         await db.items.delete(id);
     }
   };
@@ -191,16 +193,16 @@ export const InventoryList: React.FC = () => {
                   {/* Action Buttons */}
                   <div className="flex items-center gap-2 pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                     <button
-                      onClick={() => handleDelete(item.id)}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl font-bold transition-colors active:scale-95 border border-emerald-100/50"
+                      onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl font-bold transition-colors active:scale-95 border border-emerald-100/50 z-20 relative"
                       title="Used Completely"
                     >
                       <FaCheckCircle />
                       <span className="text-xs uppercase tracking-wider hidden sm:block">Used</span>
                     </button>
                     <button
-                      onClick={() => handleDelete(item.id)}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl font-bold transition-colors active:scale-95 border border-rose-100/50"
+                      onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl font-bold transition-colors active:scale-95 border border-rose-100/50 z-20 relative"
                       title="Destroyed / Thrown Away"
                     >
                       <FaFireAlt />

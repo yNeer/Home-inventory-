@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { InventoryItem, db } from '../db';
 import { FaTimes, FaCheck, FaTrash, FaSpinner } from 'react-icons/fa';
-import { scheduleLocalNotification } from '../utils/notifications';
+import { scheduleLocalNotification, cancelLocalNotifications } from '../utils/notifications';
 
 interface EditItemModalProps {
   item: InventoryItem;
@@ -28,6 +28,9 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({ item, onClose, onU
     try {
       await db.items.update(item.id!, formData);
 
+      // Cancel old notifications first
+      await cancelLocalNotifications(item.id!);
+
       // Re-schedule notification if recurring is set
       if (formData.type === 'medicine' && formData.reminderOption !== 'none') {
           // Calculate when the next notification should fire based on times array
@@ -49,7 +52,8 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({ item, onClose, onU
                  `It's time for your ${formData.doseAmount || 'medicine'}.`,
                  Math.floor(nextMs / 60000), // delay in minutes
                  formData.image || undefined,
-                 { times: formData.reminderTimes || [], days: formData.reminderDays || [], type: formData.reminderOption || 'daily' }
+                 { times: formData.reminderTimes || [], days: formData.reminderDays || [], type: formData.reminderOption || 'daily' },
+                 item.id
               );
           }
       }
@@ -68,6 +72,7 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({ item, onClose, onU
     if (window.confirm("Are you sure you want to delete this item?")) {
        setLoading(true);
        try {
+         await cancelLocalNotifications(item.id!);
          await db.items.delete(item.id!);
          onUpdate();
          onClose();

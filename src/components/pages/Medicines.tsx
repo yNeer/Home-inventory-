@@ -5,6 +5,7 @@ import { FaPills, FaSearch, FaPlus } from 'react-icons/fa';
 import { ItemCard } from '../cards/ItemCard';
 import { EditItemModal } from '../EditItemModal';
 import { InventoryItem } from '../../db';
+import { cancelLocalNotifications } from '../../utils/notifications';
 
 interface MedicinesProps {
   onAddNew: (type: 'medicine') => void;
@@ -17,6 +18,7 @@ export const Medicines: React.FC<MedicinesProps> = ({ onAddNew }) => {
 
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this medicine?')) {
+      await cancelLocalNotifications(id);
       await db.items.delete(id);
     }
   };

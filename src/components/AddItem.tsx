@@ -198,7 +198,7 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
     }
 
     try {
-      await db.items.add({
+      const insertedId = await db.items.add({
         ...formData,
         image: imagePreview || undefined
       });
@@ -224,7 +224,8 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
                  `It's time for your ${formData.doseAmount || 'medicine'}.`,
                  Math.floor(nextMs / 60000), // delay in minutes
                  imagePreview || undefined,
-                 { times: formData.reminderTimes || [], days: formData.reminderDays || [], type: formData.reminderOption || 'daily' }
+                 { times: formData.reminderTimes || [], days: formData.reminderDays || [], type: formData.reminderOption || 'daily' },
+                 insertedId as number
               );
           }
       }

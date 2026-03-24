@@ -3,6 +3,7 @@
  */
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 
 export const requestNotificationPermission = async (): Promise<boolean> => {
   if (Capacitor.isNativePlatform()) {
@@ -28,12 +29,31 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
   return false;
 };
 
+export const cancelLocalNotifications = async (itemId: number) => {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const pending = await LocalNotifications.getPending();
+      // Since one item might have multiple scheduled times (e.g. daily at 8AM and 8PM),
+      // we need to find all notifications whose extra data corresponds to this itemId.
+      // We will attach extra data below.
+      const toCancel = pending.notifications.filter(n => n.extra && n.extra.itemId === itemId);
+      if (toCancel.length > 0) {
+        await LocalNotifications.cancel({ notifications: toCancel });
+        console.log(`Cancelled ${toCancel.length} pending native notifications for item ${itemId}`);
+      }
+    } catch (e) {
+      console.warn("Failed to cancel native notifications", e);
+    }
+  }
+};
+
 export const scheduleLocalNotification = async (
   title: string,
   body: string,
   delayMinutes: number,
   imageUrl?: string,
-  recurringData?: { times: string[], days: number[], type: string }
+  recurringData?: { times: string[], days: number[], type: string },
+  itemId?: number
 ) => {
   const hasPermission = await requestNotificationPermission();
 
@@ -60,15 +80,37 @@ export const scheduleLocalNotification = async (
          title: title,
          body: body,
          smallIcon: "ic_stat_icon_config_sample",
-         channelId: 'med-reminders'
+         channelId: 'med-reminders',
+         extra: itemId ? { itemId } : undefined
      };
 
-     if (imageUrl && !imageUrl.startsWith('data:')) {
-         baseNativeOptions.largeIcon = imageUrl;
+     // Handle base64 image saving for native notifications
+     if (imageUrl) {
+         if (imageUrl.startsWith('data:image/')) {
+             try {
+                 const base64Data = imageUrl.split(',')[1];
+                 const fileName = `notif_icon_${new Date().getTime()}.jpg`;
+                 const savedFile = await Filesystem.writeFile({
+                     path: fileName,
+                     data: base64Data,
+                     directory: Directory.Cache
+                 });
+                 // Provide local URI to the Capacitor native plugin
+                 baseNativeOptions.largeIcon = savedFile.uri;
+             } catch (e) {
+                 console.warn("Failed to save base64 image for notification", e);
+             }
+         } else {
+             baseNativeOptions.largeIcon = imageUrl;
+         }
      }
 
      const notificationsToSchedule = [];
-     let idCounter = new Date().getTime();
+
+     // Generate a safe 32-bit signed integer ID (max 2,147,483,647).
+     // Using Math.random() bounded to 1 billion guarantees it fits in Java's int type.
+     let baseId = Math.floor(Math.random() * 1000000000);
+     let idCounter = baseId;
 
      if (recurringData && recurringData.type !== 'none' && recurringData.times && recurringData.times.length > 0) {
         // Complex Scheduling logic for multiple times a day
@@ -81,14 +123,14 @@ export const scheduleLocalNotification = async (
                notificationsToSchedule.push({
                   ...baseNativeOptions,
                   id: idCounter++,
-                  schedule: { on: { hour, minute }, allowWhileIdle: true }
+                  schedule: { on: { hour, minute }, repeats: true, allowWhileIdle: true }
                });
             } else if (recurringData.type === 'weekly') {
                // Weekly assumes scheduling on the current day if not specified otherwise
                notificationsToSchedule.push({
                   ...baseNativeOptions,
                   id: idCounter++,
-                  schedule: { on: { weekday: new Date().getDay(), hour, minute }, allowWhileIdle: true }
+                  schedule: { on: { weekday: new Date().getDay(), hour, minute }, repeats: true, allowWhileIdle: true }
                });
             } else if (recurringData.type === 'custom_days' && recurringData.days && recurringData.days.length > 0) {
                // Schedule for each selected day (0-6 mapping to Capacitor's weekday 1-7 depending on plugin version, usually 1=Sun, 7=Sat)
@@ -97,14 +139,14 @@ export const scheduleLocalNotification = async (
                    notificationsToSchedule.push({
                       ...baseNativeOptions,
                       id: idCounter++,
-                      schedule: { on: { weekday: day + 1, hour, minute }, allowWhileIdle: true }
+                      schedule: { on: { weekday: day + 1, hour, minute }, repeats: true, allowWhileIdle: true }
                    });
                }
             } else if (recurringData.type === 'monthly') {
                notificationsToSchedule.push({
                   ...baseNativeOptions,
                   id: idCounter++,
-                  schedule: { on: { day: new Date().getDate(), hour, minute }, allowWhileIdle: true }
+                  schedule: { on: { day: new Date().getDate(), hour, minute }, repeats: true, allowWhileIdle: true }
                });
             }
         }
@@ -113,7 +155,7 @@ export const scheduleLocalNotification = async (
         notificationsToSchedule.push({
             ...baseNativeOptions,
             id: idCounter,
-            schedule: { at: new Date(Date.now() + delayMs), allowWhileIdle: true }
+            schedule: { at: new Date(Date.now() + delayMs), repeats: false, allowWhileIdle: true }
         });
      }
 

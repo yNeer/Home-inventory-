@@ -7,6 +7,7 @@ import { usePWAInstall } from '../hooks/usePWAInstall';
 import { FaChevronRight } from 'react-icons/fa';
 import { EditItemModal } from './EditItemModal';
 import { InventoryItem } from '../db';
+import { cancelLocalNotifications } from '../utils/notifications';
 
 interface DashboardProps {
   onAddNew: () => void;
@@ -24,6 +25,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications, onView
 
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this item?')) {
+      await cancelLocalNotifications(id);
       await db.items.delete(id);
     }
   };

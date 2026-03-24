@@ -45,8 +45,8 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onDelete }) => {
         </div>
 
         <button
-          onClick={() => item.id && onDelete(item.id)}
-          className="w-10 h-10 flex items-center justify-center rounded-full text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all active:scale-95"
+          onClick={(e) => { e.stopPropagation(); item.id && onDelete(item.id); }}
+          className="w-10 h-10 flex items-center justify-center rounded-full text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all active:scale-95 z-20 relative"
           aria-label="Delete item"
         >
           <FaTrash size={14} />
