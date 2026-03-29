@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db';
 import { FaBoxOpen, FaPlus, FaSearch, FaBell, FaDownload, FaSpinner } from 'react-icons/fa';
@@ -18,6 +18,36 @@ const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications, onView
   const [searchQuery, setSearchQuery] = useState('');
   const { isInstallable, installPWA, isInstalled } = usePWAInstall();
   const [isInstalling, setIsInstalling] = useState(false);
+
+  // Memoize filtered and categorized items to prevent expensive array operations on every render
+  const { filteredItems, expiringItems, medicineItems, groceryItems } = useMemo(() => {
+    if (!items) return { filteredItems: [], expiringItems: [], medicineItems: [], groceryItems: [] };
+
+    const filtered = items.filter(item =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.type.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const now = new Date();
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(now.getDate() + 30);
+
+    const expiring = filtered.filter(item => {
+      if (!item.expiryDate) return false;
+      const expiry = new Date(item.expiryDate);
+      return expiry <= thirtyDaysFromNow;
+    }).sort((a, b) => new Date(a.expiryDate!).getTime() - new Date(b.expiryDate!).getTime());
+
+    const medicines = filtered.filter(item => item.type === 'medicine');
+    const groceries = filtered.filter(item => item.type === 'grocery');
+
+    return {
+      filteredItems: filtered,
+      expiringItems: expiring,
+      medicineItems: medicines,
+      groceryItems: groceries
+    };
+  }, [items, searchQuery]);
 
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this item?')) {
@@ -103,11 +133,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications, onView
       {(() => {
         if (!items) return null;
 
-        const filteredItems = items.filter(item =>
-          item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.type.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-
         if (items.length === 0) {
           return (
             <div className="text-center py-20 flex flex-col items-center justify-center mt-4">
@@ -156,19 +181,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications, onView
           );
         };
 
-        // Categorize items
-        const now = new Date();
-        const thirtyDaysFromNow = new Date();
-        thirtyDaysFromNow.setDate(now.getDate() + 30);
 
-        const expiringItems = filteredItems.filter(item => {
-          if (!item.expiryDate) return false;
-          const expiry = new Date(item.expiryDate);
-          return expiry <= thirtyDaysFromNow;
-        }).sort((a, b) => new Date(a.expiryDate!).getTime() - new Date(b.expiryDate!).getTime());
-
-        const medicineItems = filteredItems.filter(item => item.type === 'medicine');
-        const groceryItems = filteredItems.filter(item => item.type === 'grocery');
 
         return (
           <div className="flex flex-col gap-2">

@@ -1,0 +1,3 @@
+## 2025-03-29 - [Memoize Filtered Inventory Arrays]
+**Learning:** Found multiple instances where Dexie `useLiveQuery` results were filtered inline during the React render phase in Dashboard, InventoryList, and Medicines components. Because `useLiveQuery` acts as a state trigger, and because components unmount/remount, any UI interaction could cause these expensive array `.filter()` and `.sort()` operations to run repetitively on potentially large client-side databases.
+**Action:** Always wrap expensive derived local database states (like categorized inventory or filtered lists from Dexie) in a `useMemo` block with proper dependencies (`[items, searchQuery]`) to avoid O(N) array traversals on every render cycle.

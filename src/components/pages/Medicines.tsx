@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db';
 import { FaPills, FaSearch, FaPlus } from 'react-icons/fa';
@@ -11,6 +11,15 @@ interface MedicinesProps {
 export const Medicines: React.FC<MedicinesProps> = ({ onAddNew }) => {
   const items = useLiveQuery(() => db.items.where('type').equals('medicine').toArray(), []);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredItems = useMemo(() => {
+    if (!items) return [];
+    return items.filter(item =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.batchNo && item.batchNo.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (item.components && item.components.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+  }, [items, searchQuery]);
 
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this medicine?')) {
@@ -46,12 +55,6 @@ export const Medicines: React.FC<MedicinesProps> = ({ onAddNew }) => {
       {/* Content Area */}
       {(() => {
         if (!items) return null;
-
-        const filteredItems = items.filter(item =>
-          item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (item.batchNo && item.batchNo.toLowerCase().includes(searchQuery.toLowerCase())) ||
-          (item.components && item.components.toLowerCase().includes(searchQuery.toLowerCase()))
-        );
 
         if (items.length === 0) {
           return (
