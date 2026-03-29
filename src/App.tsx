@@ -131,6 +131,7 @@ function App() {
             <div className="flex items-center justify-around h-20 px-2 sm:px-4">
               <button
                 onClick={() => setCurrentView('dashboard')}
+                aria-label="Home"
                 className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all ${currentView === 'dashboard' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
               >
                 <FaHome size={22} className={currentView === 'dashboard' ? 'scale-110 drop-shadow-sm' : ''} />
@@ -139,6 +140,7 @@ function App() {
 
               <button
                 onClick={() => setCurrentView('medicines')}
+                aria-label="Medicines"
                 className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all ${currentView === 'medicines' ? 'text-rose-500' : 'text-slate-400 hover:text-slate-600'}`}
               >
                 <FaPills size={22} className={currentView === 'medicines' ? 'scale-110 drop-shadow-sm' : ''} />
@@ -158,6 +160,7 @@ function App() {
 
               <button
                 onClick={() => setCurrentView('inventory')}
+                aria-label="Inventory"
                 className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all ${currentView === 'inventory' ? 'text-emerald-500' : 'text-slate-400 hover:text-slate-600'}`}
               >
                 <FaBoxOpen size={22} className={currentView === 'inventory' ? 'scale-110 drop-shadow-sm' : ''} />
@@ -166,6 +169,7 @@ function App() {
 
               <button
                 onClick={() => setCurrentView('profile')}
+                aria-label="Profile"
                 className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all ${currentView === 'profile' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
               >
                 <FaUserCircle size={22} className={currentView === 'profile' ? 'scale-110 drop-shadow-sm' : ''} />

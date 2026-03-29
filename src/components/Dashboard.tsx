@@ -82,6 +82,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications, onView
           )}
           <button
             onClick={onNotifications}
+            aria-label="Notifications"
             className="md:hidden w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-400 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:text-indigo-500 transition-colors relative"
           >
             <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white z-10"></div>
