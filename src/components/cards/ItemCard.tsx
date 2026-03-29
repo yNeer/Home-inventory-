@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { format, isBefore, addDays } from 'date-fns';
 import { FaBox, FaPills, FaTrash, FaExclamationCircle, FaRegClock } from 'react-icons/fa';
 import { InventoryItem } from '../../db';
@@ -9,17 +9,18 @@ interface ItemCardProps {
 }
 
 export const ItemCard: React.FC<ItemCardProps> = ({ item, onDelete }) => {
-  const getStatus = (expiryDate?: string) => {
+  const now = useMemo(() => new Date(), []);
+
+  const getStatus = (expiryDate: string | undefined, now: Date) => {
     if (!expiryDate) return { color: 'gray', text: 'No Expiry', bg: 'bg-gray-100', textCol: 'text-gray-500' };
     const expiry = new Date(expiryDate);
-    const now = new Date();
 
     if (isBefore(expiry, now)) return { color: 'rose', text: 'Expired', bg: 'bg-rose-50', textCol: 'text-rose-600' };
     if (isBefore(expiry, addDays(now, 7))) return { color: 'orange', text: 'Expiring Soon', bg: 'bg-orange-50', textCol: 'text-orange-600' };
     return { color: 'emerald', text: 'Fresh', bg: 'bg-emerald-50', textCol: 'text-emerald-600' };
   };
 
-  const status = getStatus(item.expiryDate);
+  const status = getStatus(item.expiryDate, now);
   const isMedicine = item.type === 'medicine';
 
   return (

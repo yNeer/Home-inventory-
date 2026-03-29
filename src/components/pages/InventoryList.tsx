@@ -13,6 +13,13 @@ export const InventoryList: React.FC = () => {
   // Fetch all items
   const allItems = useLiveQuery(() => db.items.toArray(), []) || [];
 
+  // Calculate today at midnight once
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+
   // Filter items based on active tab and search
   const filteredItems = useMemo(() => {
     return allItems.filter(item => {
@@ -22,8 +29,6 @@ export const InventoryList: React.FC = () => {
     }
 
     // Date logic
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     const expiry = item.expiryDate ? new Date(item.expiryDate) : null;
     let daysUntilExpiry = null;
     if (expiry) {
@@ -52,9 +57,7 @@ export const InventoryList: React.FC = () => {
     }
   };
 
-  const getStatusColor = (item: any) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  const getStatusColor = (item: any, today: Date) => {
     const expiry = item.expiryDate ? new Date(item.expiryDate) : null;
 
     if (!expiry) return 'bg-emerald-50 text-emerald-600 border-emerald-100';
@@ -67,9 +70,7 @@ export const InventoryList: React.FC = () => {
     return 'bg-emerald-50 text-emerald-600 border-emerald-100';
   };
 
-  const getStatusText = (item: any) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  const getStatusText = (item: any, today: Date) => {
     const expiry = item.expiryDate ? new Date(item.expiryDate) : null;
 
     if (!expiry) return 'No Expiry';
@@ -172,8 +173,8 @@ export const InventoryList: React.FC = () => {
                   <div className="flex-1 flex flex-col gap-1 min-w-0">
                     <h3 className="font-bold text-lg text-slate-800 truncate pr-4">{item.name}</h3>
                     <div className="flex items-center gap-3 mt-1 flex-wrap">
-                      <span className={`text-[10px] uppercase font-bold tracking-widest px-3 py-1 rounded-full border ${getStatusColor(item)}`}>
-                        {getStatusText(item)}
+                      <span className={`text-[10px] uppercase font-bold tracking-widest px-3 py-1 rounded-full border ${getStatusColor(item, today)}`}>
+                        {getStatusText(item, today)}
                       </span>
                       <span className="text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full">
                         {item.type}
