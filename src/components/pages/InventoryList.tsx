@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db';
 import { FaBoxOpen, FaSearch, FaLeaf, FaExclamationTriangle, FaTrashAlt, FaCheckCircle, FaFireAlt } from 'react-icons/fa';
@@ -14,7 +14,8 @@ export const InventoryList: React.FC = () => {
   const allItems = useLiveQuery(() => db.items.toArray(), []) || [];
 
   // Filter items based on active tab and search
-  const filteredItems = allItems.filter(item => {
+  const filteredItems = useMemo(() => {
+    return allItems.filter(item => {
     // Search filter
     if (searchQuery && !item.name.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
@@ -43,6 +44,7 @@ export const InventoryList: React.FC = () => {
         return true;
     }
   });
+  }, [allItems, searchQuery, activeTab]);
 
   const handleDelete = async (id?: number) => {
     if (id) {
