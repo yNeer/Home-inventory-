@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../db';
+import { db, InventoryItem } from '../../db';
 import { FaBoxOpen, FaSearch, FaLeaf, FaExclamationTriangle, FaTrashAlt, FaCheckCircle, FaFireAlt } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -52,7 +52,7 @@ export const InventoryList: React.FC = () => {
     }
   };
 
-  const getStatusColor = (item: any) => {
+  const getStatusColor = (item: InventoryItem) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const expiry = item.expiryDate ? new Date(item.expiryDate) : null;
@@ -67,7 +67,7 @@ export const InventoryList: React.FC = () => {
     return 'bg-emerald-50 text-emerald-600 border-emerald-100';
   };
 
-  const getStatusText = (item: any) => {
+  const getStatusText = (item: InventoryItem) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const expiry = item.expiryDate ? new Date(item.expiryDate) : null;
