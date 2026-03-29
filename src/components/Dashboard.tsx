@@ -23,20 +23,24 @@ const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications, onView
   const { filteredItems, expiringItems, medicineItems, groceryItems } = useMemo(() => {
     if (!items) return { filteredItems: [], expiringItems: [], medicineItems: [], groceryItems: [] };
 
-    const filtered = items.filter(item =>
+    const now = new Date();
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(now.getDate() + 30);
+    const thirtyDaysFromNowTime = thirtyDaysFromNow.getTime();
+
+    const itemsWithTimestamp = items.map(item => ({
+      ...item,
+      expiryTimestamp: item.expiryDate ? new Date(item.expiryDate).getTime() : null
+    }));
+
+    const filtered = itemsWithTimestamp.filter(item =>
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.type.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const now = new Date();
-    const thirtyDaysFromNow = new Date();
-    thirtyDaysFromNow.setDate(now.getDate() + 30);
-
-    const expiring = filtered.filter(item => {
-      if (!item.expiryDate) return false;
-      const expiry = new Date(item.expiryDate);
-      return expiry <= thirtyDaysFromNow;
-    }).sort((a, b) => new Date(a.expiryDate!).getTime() - new Date(b.expiryDate!).getTime());
+    const expiring = filtered
+      .filter(item => item.expiryTimestamp !== null && item.expiryTimestamp <= thirtyDaysFromNowTime)
+      .sort((a, b) => (a.expiryTimestamp as number) - (b.expiryTimestamp as number));
 
     const medicines = filtered.filter(item => item.type === 'medicine');
     const groceries = filtered.filter(item => item.type === 'grocery');
@@ -118,7 +122,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications, onView
             <div className="absolute bottom-0 right-0 w-24 h-24 bg-rose-100 opacity-50 rounded-full blur-2xl -mr-5 -mb-5"></div>
             <div className="relative z-10 flex flex-col justify-between h-full">
                <div className="text-rose-400 font-bold uppercase tracking-widest text-[10px] md:text-xs mb-2">Expiring</div>
-               <div className="text-4xl md:text-5xl font-extrabold tracking-tight">0</div>
+               <div className="text-4xl md:text-5xl font-extrabold tracking-tight">{expiringItems.length}</div>
             </div>
          </div>
          <div className="hidden md:flex bg-white rounded-[28px] p-5 md:p-6 text-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative overflow-hidden col-span-1">
@@ -155,7 +159,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications, onView
           );
         }
 
-        const renderSection = (title: string, data: typeof items, viewMoreHandler?: () => void) => {
+        const renderSection = (title: string, data: any[], viewMoreHandler?: () => void) => {
           if (data.length === 0) return null;
           const displayItems = data.slice(0, 5);
           const hasMore = data.length > 5;
