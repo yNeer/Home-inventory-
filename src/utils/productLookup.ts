@@ -11,8 +11,15 @@ export interface ProductDetails {
 
 export const lookupBarcode = async (barcode: string): Promise<ProductDetails | null> => {
   try {
+    // Validate barcode (alphanumeric only) to prevent SSRF / Path Traversal
+    if (!/^[a-zA-Z0-9]+$/.test(barcode)) {
+      console.warn(`Invalid barcode format: ${barcode}`);
+      return null;
+    }
+    const safeBarcode = encodeURIComponent(barcode);
+
     // Attempt OpenFoodFacts (for groceries)
-    const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+    const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${safeBarcode}.json`);
 
     if (response.ok) {
       const data = await response.json();
