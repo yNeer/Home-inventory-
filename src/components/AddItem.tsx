@@ -210,7 +210,7 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
       {/* Dynamic Header */}
       <header className="bg-white/80 backdrop-blur-2xl px-6 md:px-10 pt-safe py-4 shadow-[0_4px_30px_rgb(0,0,0,0.02)] border-b border-white flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-4 mt-2 sm:mt-6">
-           <button onClick={onBack} className="w-12 h-12 -ml-3 rounded-full flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 active:scale-95 transition-all md:hidden">
+           <button onClick={onBack} aria-label="Go back" className="w-12 h-12 -ml-3 rounded-full flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 active:scale-95 transition-all md:hidden">
              <FaArrowLeft size={18} />
            </button>
            <h2 className="text-2xl md:text-3xl font-extrabold text-[#1a1b41] tracking-tight">Add Item</h2>
@@ -218,7 +218,7 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
         <button onClick={handleSubmit} disabled={loading} className="hidden md:flex items-center gap-2 mt-2 sm:mt-6 rounded-2xl px-6 py-3 bg-gradient-to-tr from-indigo-500 to-indigo-600 text-white font-bold shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50">
            <FaCheck size={16} /> Save Item
         </button>
-        <button onClick={handleSubmit} disabled={loading} className="md:hidden w-12 h-12 mt-2 sm:mt-6 rounded-full bg-gradient-to-tr from-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50">
+        <button onClick={handleSubmit} aria-label="Save item" disabled={loading} className="md:hidden w-12 h-12 mt-2 sm:mt-6 rounded-full bg-gradient-to-tr from-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50">
            <FaCheck size={16} />
         </button>
       </header>
