@@ -1,0 +1,3 @@
+## 2024-03-30 - [InventoryList Accessibility Updates]
+**Learning:** Found that some action buttons (like "Used" and "Destroy") rely on text spans (`sm:block`) that are hidden on smaller screens (`hidden`), relying entirely on icons (`FaCheckCircle`, `FaFireAlt`) to convey meaning. This pattern severely impacts screen reader accessibility on mobile viewports since the descriptive text is visually hidden, but not replaced with an alternative.
+**Action:** When adding or encountering icon-only buttons or buttons that hide their descriptive text on smaller screens in this app, always ensure they have an explicit `aria-label` attribute (e.g., `aria-label="Used completely"`) to maintain accessibility across all device sizes.

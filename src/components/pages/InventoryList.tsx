@@ -110,10 +110,12 @@ export const InventoryList: React.FC = () => {
           />
         </div>
 
-        <div className="flex overflow-x-auto gap-2 pb-2 -mb-2 no-scrollbar">
+        <div className="flex overflow-x-auto gap-2 pb-2 -mb-2 no-scrollbar" role="tablist">
           {(['All', 'Fresh', 'Near Expiry', 'Expired'] as TabType[]).map((tab) => (
             <button
               key={tab}
+              role="tab"
+              aria-selected={activeTab === tab}
               onClick={() => setActiveTab(tab)}
               className={`px-6 py-3 rounded-full font-bold whitespace-nowrap transition-all shadow-sm ${
                 activeTab === tab
@@ -193,6 +195,7 @@ export const InventoryList: React.FC = () => {
                       onClick={() => handleDelete(item.id)}
                       className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl font-bold transition-colors active:scale-95 border border-emerald-100/50"
                       title="Used Completely"
+                      aria-label="Used completely"
                     >
                       <FaCheckCircle />
                       <span className="text-xs uppercase tracking-wider hidden sm:block">Used</span>
@@ -201,6 +204,7 @@ export const InventoryList: React.FC = () => {
                       onClick={() => handleDelete(item.id)}
                       className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl font-bold transition-colors active:scale-95 border border-rose-100/50"
                       title="Destroyed / Thrown Away"
+                      aria-label="Destroyed or thrown away"
                     >
                       <FaFireAlt />
                       <span className="text-xs uppercase tracking-wider hidden sm:block">Destroy</span>
