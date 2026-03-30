@@ -330,9 +330,10 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
             )}
 
             <div className="relative">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Product Name</label>
+            <label htmlFor="name" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Product Name</label>
             <input
               type="text"
+              id="name"
               name="name"
               value={formData.name}
               onChange={handleChange}
@@ -343,8 +344,9 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
 
           <div className="grid grid-cols-2 gap-4">
              <div className="relative">
-               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Type</label>
+               <label htmlFor="type" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Type</label>
                <select
+                 id="type"
                  name="type"
                  value={formData.type}
                  onChange={handleChange}
@@ -356,11 +358,12 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
              </div>
 
              <div className="relative">
-               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Price</label>
+               <label htmlFor="price" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Price</label>
                <div className="flex items-center bg-slate-50/50 rounded-2xl px-5 py-4 focus-within:bg-indigo-50/30 focus-within:ring-2 focus-within:ring-indigo-100 transition-all border border-slate-100">
                   <span className="text-slate-400 font-extrabold text-base mr-2">₹</span>
                   <input
                     type="text"
+                    id="price"
                     name="price"
                     value={formData.price}
                     onChange={handleChange}
@@ -373,9 +376,10 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
 
         <div className="bg-white rounded-[32px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 space-y-6">
           <div className="relative">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Purchase Date</label>
+            <label htmlFor="purchaseDate" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Purchase Date</label>
             <input
               type="date"
+              id="purchaseDate"
               name="purchaseDate"
               value={formData.purchaseDate}
               onChange={handleChange}
@@ -385,9 +389,10 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
 
           <div className="grid grid-cols-2 gap-4">
              <div className="relative">
-               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Mfg Date</label>
+               <label htmlFor="mfgDate" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Mfg Date</label>
                <input
                  type="date"
+                 id="mfgDate"
                  name="mfgDate"
                  value={formData.mfgDate}
                  onChange={handleChange}
@@ -396,9 +401,10 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
              </div>
 
              <div className="relative">
-               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Expiry</label>
+               <label htmlFor="expiryDate" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Expiry</label>
                <input
                  type="date"
+                 id="expiryDate"
                  name="expiryDate"
                  value={formData.expiryDate}
                  onChange={handleChange}
@@ -408,9 +414,10 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
             </div>
 
             <div className="relative">
-               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Batch No</label>
+               <label htmlFor="batchNo" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Batch No</label>
                <input
                  type="text"
+                 id="batchNo"
                  name="batchNo"
                  value={formData.batchNo || ''}
                  onChange={handleChange}
@@ -420,8 +427,9 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
             </div>
 
             <div className="md:col-span-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Description</label>
+              <label htmlFor="description" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Description</label>
               <textarea
+                id="description"
                 name="description"
                 value={formData.description || ''}
                 onChange={handleChange as any}
@@ -432,9 +440,10 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
             </div>
 
             <div className="md:col-span-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Details (Volume, Weight, Quality)</label>
+              <label htmlFor="details" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Details (Volume, Weight, Quality)</label>
               <input
                 type="text"
+                id="details"
                 name="details"
                 value={formData.details || ''}
                 onChange={handleChange}
@@ -450,9 +459,10 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
               <div className="bg-white rounded-[32px] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 space-y-6">
                  <div className="grid grid-cols-2 gap-4">
                     <div className="relative">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Total Tablets</label>
+                      <label htmlFor="totalQuantity" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Total Tablets</label>
                       <input
                         type="number"
+                        id="totalQuantity"
                         name="totalQuantity"
                         value={formData.totalQuantity || ''}
                         onChange={handleChange}
@@ -462,9 +472,10 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
                       />
                     </div>
                     <div className="relative">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Daily Dose</label>
+                      <label htmlFor="dailyDose" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Daily Dose</label>
                       <input
                         type="number"
+                        id="dailyDose"
                         name="dailyDose"
                         value={formData.dailyDose || ''}
                         onChange={handleChange}
@@ -476,8 +487,9 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
                  </div>
 
                  <div className="md:col-span-2">
-                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Composition / Ingredients</label>
+                   <label htmlFor="components" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pl-1">Composition / Ingredients</label>
                    <textarea
+                     id="components"
                      name="components"
                      value={formData.components || ''}
                      onChange={handleChange as any}
@@ -491,10 +503,11 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
               <div className="grid grid-cols-2 gap-4">
                  <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-[32px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-rose-100/50 relative overflow-hidden col-span-1">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-40 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
-                    <label className="text-[10px] font-extrabold text-rose-800 flex items-center gap-2 uppercase tracking-widest relative z-10 mb-3">
+                    <label htmlFor="reminderOption" className="text-[10px] font-extrabold text-rose-800 flex items-center gap-2 uppercase tracking-widest relative z-10 mb-3">
                        <span className="text-[14px]">🔔</span> Remind
                     </label>
                     <select
+                      id="reminderOption"
                       name="reminderOption"
                       value={formData.reminderOption}
                       onChange={handleChange}
@@ -508,10 +521,11 @@ const AddItem: React.FC<AddItemProps> = ({ onBack, initialType = 'grocery' }) =>
                  </div>
 
                  <div className="bg-indigo-50/50 rounded-[32px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-indigo-100/50 relative overflow-hidden col-span-1">
-                    <label className="text-[10px] font-extrabold text-indigo-800 flex items-center gap-2 uppercase tracking-widest relative z-10 mb-3">
+                    <label htmlFor="medicineTiming" className="text-[10px] font-extrabold text-indigo-800 flex items-center gap-2 uppercase tracking-widest relative z-10 mb-3">
                        <span className="text-[14px]">🍽️</span> Timing
                     </label>
                     <select
+                      id="medicineTiming"
                       name="medicineTiming"
                       value={formData.medicineTiming}
                       onChange={handleChange}
