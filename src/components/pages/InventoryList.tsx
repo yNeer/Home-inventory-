@@ -99,10 +99,11 @@ export const InventoryList: React.FC = () => {
       <div className="flex flex-col gap-6 mb-8 sticky top-0 bg-[#F8F9FE]/90 backdrop-blur-xl z-20 py-4 -mx-6 px-6 md:-mx-10 md:px-10 lg:-mx-12 lg:px-12">
         <div className="relative w-full shadow-sm">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <FaSearch className="text-slate-400" />
+            <FaSearch className="text-slate-400" aria-hidden="true" />
           </div>
           <input
-            type="text"
+            type="search"
+            aria-label="Search inventory"
             placeholder="Search inventory..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

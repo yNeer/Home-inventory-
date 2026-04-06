@@ -98,10 +98,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onAddNew, onNotifications, onView
       {/* Search Bar */}
       <div className="relative mb-8">
         <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-          <FaSearch className="text-slate-400" />
+          <FaSearch className="text-slate-400" aria-hidden="true" />
         </div>
         <input
-          type="text"
+          type="search"
+          aria-label="Search inventory"
           placeholder="Search inventory..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}

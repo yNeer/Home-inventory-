@@ -41,10 +41,11 @@ export const Medicines: React.FC<MedicinesProps> = ({ onAddNew }) => {
       {/* Search Bar */}
       <div className="relative mb-8">
         <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-          <FaSearch className="text-slate-400" />
+          <FaSearch className="text-slate-400" aria-hidden="true" />
         </div>
         <input
-          type="text"
+          type="search"
+          aria-label="Search medicines"
           placeholder="Search medicines, batch no, components..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}

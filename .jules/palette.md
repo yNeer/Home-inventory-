@@ -1,0 +1,3 @@
+## 2024-05-24 - Semantics and Accessibility of Search Inputs
+**Learning:** Using `type="text"` instead of `type="search"` in search inputs reduces semantics, mobile keyboard support (e.g. showing a "Search" key), and overall usability. Furthermore, inputs without explicit `<label>` tags must include a descriptive `aria-label` attribute. Purely decorative icons (like search icons inside the input container) should explicitly use `aria-hidden="true"` so they are ignored by screen readers, preventing repetitive or unhelpful announcements.
+**Action:** Always prefer `type="search"` for search inputs, ensuring they have an `aria-label` when no explicit `<label>` tag is provided, and hide purely decorative icons from screen readers with `aria-hidden="true"`.
