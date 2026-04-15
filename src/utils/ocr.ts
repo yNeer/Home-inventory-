@@ -4,9 +4,7 @@ import { isValid, format } from 'date-fns';
 export const processImageWithOCR = async (imageFile: File | Blob) => {
   try {
     // 1. Create a worker instead of using the shorthand recognize method
-    const worker = await Tesseract.createWorker('eng', 1, {
-      logger: m => console.log(m)
-    });
+    const worker = await Tesseract.createWorker('eng', 1);
 
     // 2. Set advanced parameters
     await worker.setParameters({
@@ -16,7 +14,6 @@ export const processImageWithOCR = async (imageFile: File | Blob) => {
     // 3. Recognize
     const result = await worker.recognize(imageFile);
     const data = result.data;
-    console.log("OCR Extracted Text (Advanced):", data.text);
 
     // 4. Terminate worker
     await worker.terminate();

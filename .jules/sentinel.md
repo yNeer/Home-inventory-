@@ -2,3 +2,7 @@
 **Vulnerability:** The \`lookupBarcode\` function passed unsanitized, un-encoded user input directly into a fetch API URL string interpolation.
 **Learning:** Even though the fetch runs on the client-side, dynamic paths derived from user input must always be validated and encoded. If left untreated, this exposes the application to Server-Side Request Forgery or Path Traversal, allowing malicious endpoints to be queried.
 **Prevention:** Always validate that dynamic URL path parameters match expected patterns (e.g., alphanumeric regex for barcodes) and URL-encode them using \`encodeURIComponent\` before interpolation.
+## 2026-04-14 - [Data Exposure via External Library Logging]
+**Vulnerability:** The `tesseract.js` library was configured to log all internal worker messages to the console during OCR processing, including the raw text extracted from images (e.g., receipts, medical documents, barcodes).
+**Learning:** Third-party libraries that handle sensitive user data (like images or text) often have verbose logging enabled by default or via boilerplate examples. If left in production, these logs can expose PII, financial details, or API keys to the browser console, which might be captured by error-tracking services or malicious browser extensions.
+**Prevention:** Always review the logging configuration of external libraries, especially those handling sensitive data. Ensure verbose logging is disabled in production, and explicitly avoid logging raw sensitive data structures (like `data.text` from OCR results).
