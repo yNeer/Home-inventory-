@@ -9,6 +9,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   build:
@@ -71,3 +73,27 @@ jobs:
         files: android/app/build/outputs/apk/debug/app-debug.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup GitHub Pages Deployment
+      run: |
+        mkdir gh-pages-dir
+        cp download-page/index.html gh-pages-dir/
+        cp android/app/build/outputs/apk/debug/app-debug.apk gh-pages-dir/
+        sed -i "s/{{BUILD_DATE}}/${{ env.date }}/g" gh-pages-dir/index.html
+
+    - name: Upload Pages Artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: gh-pages-dir
+
+  deploy-pages:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
