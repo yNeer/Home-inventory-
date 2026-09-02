@@ -1,0 +1,10 @@
+{
+  "name": "Home Inventory",
+  "description": "Home grocery and medicine inventory app with barcode scanning, OCR expiration detection, and reminders",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

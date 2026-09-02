@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../db';
-import { FaPills, FaSearch, FaPlus } from 'react-icons/fa';
+import { db, InventoryItem } from '../../db';
+import { FaPills, FaSearch, FaPlus, FaTimes } from 'react-icons/fa';
 import { ItemCard } from '../cards/ItemCard';
+import { ProductDetailModal } from '../modals/ProductDetailModal';
 
 interface MedicinesProps {
   onAddNew: (type: 'medicine') => void;
@@ -11,31 +12,49 @@ interface MedicinesProps {
 export const Medicines: React.FC<MedicinesProps> = ({ onAddNew }) => {
   const items = useLiveQuery(() => db.items.where('type').equals('medicine').toArray(), []);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedMedicine, setSelectedMedicine] = useState<InventoryItem | null>(null);
 
   const filteredItems = useMemo(() => {
     if (!items) return [];
-    return items.filter(item =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.batchNo && item.batchNo.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (item.components && item.components.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return items;
+
+    return items.filter(item => {
+      const nameMatch = item.name.toLowerCase().includes(query);
+      const batchMatch = item.batchNo ? item.batchNo.toLowerCase().includes(query) : false;
+      const compMatch = item.components ? item.components.toLowerCase().includes(query) : false;
+      const detailsMatch = item.details ? item.details.toLowerCase().includes(query) : false;
+      const barcodeMatch = item.barcode ? item.barcode.toLowerCase().includes(query) : false;
+      const expiryMatch = item.expiryDate ? item.expiryDate.toLowerCase().includes(query) : false;
+
+      return nameMatch || batchMatch || compMatch || detailsMatch || barcodeMatch || expiryMatch;
+    });
   }, [items, searchQuery]);
 
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this medicine?')) {
       await db.items.delete(id);
+      if (selectedMedicine?.id === id) {
+        setSelectedMedicine(null);
+      }
     }
   };
 
   return (
     <div className="min-h-full relative px-6 md:px-10 lg:px-12 pt-safe pb-32 w-full max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <header className="flex justify-between items-center mb-8 mt-6 sm:mt-8 z-20 relative">
+      <header className="flex justify-between items-center mb-6 mt-6 sm:mt-8 z-20 relative">
         <div className="flex flex-col">
           <span className="text-sm font-bold text-rose-400 tracking-widest uppercase mb-1 drop-shadow-sm">Pharmacy</span>
           <h1 className="text-4xl md:text-5xl font-extrabold text-[#1a1b41] tracking-tight leading-none drop-shadow-sm">
             Medicines.
           </h1>
         </div>
+        <button
+          onClick={() => onAddNew('medicine')}
+          className="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white font-bold py-2.5 px-5 rounded-2xl shadow-md shadow-rose-200 transition-all active:scale-95 text-sm"
+        >
+          <FaPlus size={12} /> Add Medicine
+        </button>
       </header>
 
       {/* Search Bar */}
@@ -45,11 +64,19 @@ export const Medicines: React.FC<MedicinesProps> = ({ onAddNew }) => {
         </div>
         <input
           type="text"
-          placeholder="Search medicines, batch no, components..."
+          placeholder="Search by name, batch number, active ingredients, details..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-slate-800 placeholder-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-rose-400 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 transition-all"
+          className="w-full bg-white rounded-2xl py-4 pl-12 pr-12 text-slate-800 placeholder-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-rose-400 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 transition-all"
         />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="absolute inset-y-0 right-4 flex items-center text-slate-400 hover:text-slate-600"
+          >
+            <FaTimes />
+          </button>
+        )}
       </div>
 
       {/* Content Area */}
@@ -76,24 +103,40 @@ export const Medicines: React.FC<MedicinesProps> = ({ onAddNew }) => {
 
         if (filteredItems.length === 0) {
           return (
-            <div className="text-center py-20">
-              <p className="text-xl font-bold text-slate-800 mb-2">No results found</p>
-              <p className="text-sm text-slate-400 font-medium">Try a different search term.</p>
+            <div className="text-center py-20 bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm">
+              <p className="text-xl font-bold text-slate-800 mb-2">No medicines match "{searchQuery}"</p>
+              <p className="text-sm text-slate-400 font-medium">Try searching by generic salt, brand name, or batch number.</p>
             </div>
           );
         }
 
         return (
           <div className="flex flex-col gap-6">
+            <div className="flex justify-between items-center text-xs font-bold text-slate-400">
+              <span>Showing {filteredItems.length} of {items.length} medicines</span>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredItems.map(item => (
-                <ItemCard key={item.id} item={item} onDelete={handleDelete} />
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  onDelete={handleDelete}
+                  onView={(itm) => setSelectedMedicine(itm)}
+                />
               ))}
             </div>
           </div>
         );
       })()}
 
+      {/* Product Detail Modal */}
+      {selectedMedicine && (
+        <ProductDetailModal
+          item={selectedMedicine}
+          onClose={() => setSelectedMedicine(null)}
+          onDelete={handleDelete}
+        />
+      )}
     </div>
   );
 };

@@ -1,8 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { FaCog, FaSignOutAlt, FaShieldAlt, FaBell, FaDownload, FaCheckCircle, FaSpinner, FaApple, FaShareSquare, FaPlusSquare, FaChrome, FaEllipsisV } from 'react-icons/fa';
+import {
+  FaCog,
+  FaSignOutAlt,
+  FaShieldAlt,
+  FaBell,
+  FaDownload,
+  FaCheckCircle,
+  FaSpinner,
+  FaApple,
+  FaShareSquare,
+  FaPlusSquare,
+  FaChrome,
+  FaMicrochip,
+  FaCloudDownloadAlt,
+  FaRedo
+} from 'react-icons/fa';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
 import { SquirrelMascot } from '../ui/SquirrelMascot';
 import { motion, AnimatePresence } from 'framer-motion';
+import { isOCRDownloaded, getOCRCacheDate, downloadOCRModel, OCRDownloadProgress } from '../../utils/ocrManager';
 
 export const Profile: React.FC = () => {
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default');
@@ -11,11 +27,17 @@ export const Profile: React.FC = () => {
   const [installSuccess, setInstallSuccess] = useState(false);
   const [showFallbackModal, setShowFallbackModal] = useState(false);
 
-  // Basic platform detection to show the most relevant instructions by default
+  // OCR state
+  const [ocrDownloaded, setOcrDownloaded] = useState(false);
+  const [ocrCachedDate, setOcrCachedDate] = useState<string | null>(null);
+  const [isDownloadingOCR, setIsDownloadingOCR] = useState(false);
+  const [ocrProgress, setOcrProgress] = useState<OCRDownloadProgress>({ percent: 0, status: '' });
+  const [ocrSuccessMsg, setOcrSuccessMsg] = useState(false);
+
+  // Platform detection for PWA install instructions
   const [platformTab, setPlatformTab] = useState<'ios' | 'chrome'>('ios');
 
   useEffect(() => {
-    // Detect iOS
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
                   (navigator.userAgent.includes("Mac") && "ontouchend" in document);
     setPlatformTab(isIOS ? 'ios' : 'chrome');
@@ -25,6 +47,8 @@ export const Profile: React.FC = () => {
     if ('Notification' in window) {
       setNotifPermission(Notification.permission);
     }
+    setOcrDownloaded(isOCRDownloaded());
+    setOcrCachedDate(getOCRCacheDate());
   }, []);
 
   const requestNotifs = async () => {
@@ -32,6 +56,25 @@ export const Profile: React.FC = () => {
     const perm = await Notification.requestPermission();
     setNotifPermission(perm);
   };
+
+  const handleDownloadOCR = async () => {
+    setIsDownloadingOCR(true);
+    setOcrSuccessMsg(false);
+    setOcrProgress({ percent: 10, status: 'Starting OCR engine setup...' });
+
+    const success = await downloadOCRModel((p) => {
+      setOcrProgress(p);
+    });
+
+    setIsDownloadingOCR(false);
+    if (success) {
+      setOcrDownloaded(true);
+      setOcrCachedDate(getOCRCacheDate() || new Date().toLocaleDateString());
+      setOcrSuccessMsg(true);
+      setTimeout(() => setOcrSuccessMsg(false), 5000);
+    }
+  };
+
   return (
     <div className="min-h-full px-6 md:px-10 lg:px-12 pt-safe pb-32 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
       <header className="mb-10 mt-6 sm:mt-8 relative">
@@ -51,114 +94,207 @@ export const Profile: React.FC = () => {
              <SquirrelMascot />
           </div>
           <h2 className="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight mb-1 z-10 text-center">Inventory Squirrel</h2>
-          <p className="text-amber-500 font-bold uppercase tracking-widest text-xs mt-2 z-10 text-center px-4 leading-relaxed">Don't forget your inventory like a squirrel, you don't have to follow.</p>
+          <p className="text-amber-500 font-bold uppercase tracking-widest text-xs mt-2 z-10 text-center px-4 leading-relaxed">
+            Scan front labels, detect batch numbers and track expiry effortlessly.
+          </p>
         </div>
 
-        <div className="col-span-1 md:col-span-2 bg-white rounded-[32px] p-4 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col gap-2">
-        <button className="flex items-center gap-4 w-full p-4 rounded-[20px] hover:bg-slate-50 transition-colors text-left active:bg-slate-100">
-          <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500">
-            <FaCog size={18} />
-          </div>
-          <span className="font-bold text-slate-700 flex-1">Settings</span>
-        </button>
-        <button className="flex items-center gap-4 w-full p-4 rounded-[20px] hover:bg-slate-50 transition-colors text-left active:bg-slate-100">
-          <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
-            <FaShieldAlt size={18} />
-          </div>
-          <span className="font-bold text-slate-700 flex-1">Privacy & Security</span>
-        </button>
-
-        {/* Primary Install App Button - Copied from Sidebar for mobile visibility */}
-        {!isInstalled && isInstallable && (
-          <button
-            onClick={async () => {
-              setIsInstalling(true);
-              const outcome = await installPWA();
-              setIsInstalling(false);
-              if (outcome === 'accepted') {
-                setInstallSuccess(true);
-                setTimeout(() => setInstallSuccess(false), 2000);
-              }
-            }}
-            disabled={isInstalling || installSuccess}
-            className="w-full h-14 mt-2 bg-white text-blue-600 border-2 border-blue-100 rounded-2xl shadow-sm flex items-center justify-center gap-2 font-bold hover:bg-blue-50 transition-colors active:scale-95"
-          >
-            {installSuccess ? <FaCheckCircle size={16} /> : isInstalling ? <FaSpinner size={16} className="animate-spin" /> : <FaDownload size={16} />}
-            <span>{installSuccess ? 'Installed!' : isInstalling ? 'Installing...' : 'Install App'}</span>
-          </button>
-        )}
-
-        <AnimatePresence>
-          {!isInstalled && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: -10, filter: 'blur(10px)' }}
-              transition={{ duration: 0.4, type: 'spring', bounce: 0.4 }}
-              className="my-2 p-5 rounded-[24px] bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-200 flex flex-col sm:flex-row items-center gap-4 justify-between relative overflow-hidden group"
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
-
-              <div className="flex items-center gap-4 relative z-10 w-full sm:w-auto">
-                 <motion.div
-                   animate={isInstalling ? { rotate: 360 } : installSuccess ? { scale: [1, 1.2, 1] } : {}}
-                   transition={isInstalling ? { repeat: Infinity, duration: 1, ease: "linear" } : { duration: 0.5 }}
-                   className={`w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-sm border shrink-0 ${installSuccess ? 'bg-emerald-400/20 border-emerald-400/50' : 'bg-white/20 border-white/30'}`}
-                 >
-                   {installSuccess ? (
-                     <FaCheckCircle size={22} className="text-emerald-300 drop-shadow-md" />
-                   ) : isInstalling ? (
-                     <FaSpinner size={20} className="text-white drop-shadow-md" />
-                   ) : (
-                     <FaDownload size={20} className="text-white drop-shadow-md" />
-                   )}
-                 </motion.div>
-                 <div className="flex flex-col flex-1">
-                   <span className="font-bold text-lg drop-shadow-sm">
-                     Install App
-                   </span>
-                   <span className="text-sm font-medium text-blue-100">
-                     Get faster access & offline mode
-                   </span>
-                   <span className="text-[10px] text-blue-200 mt-1 uppercase tracking-wider font-bold">Use browser menu to add</span>
-                 </div>
+        <div className="col-span-1 md:col-span-2 bg-white rounded-[32px] p-4 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col gap-3">
+          {/* Offline OCR Engine Card */}
+          <div className="p-5 rounded-[24px] bg-slate-50 border border-slate-200/60 flex flex-col gap-4">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-100/70 text-indigo-600 flex items-center justify-center shrink-0">
+                  <FaMicrochip size={22} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-extrabold text-slate-800 text-base">Offline OCR Engine</h3>
+                    {ocrDownloaded ? (
+                      <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <FaCheckCircle size={10} /> Ready Offline
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                        Not Downloaded
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed max-w-md">
+                    Pre-download Tesseract language models (~4MB) so you can scan front photos, batch numbers & expiry dates 100% offline without internet.
+                  </p>
+                  {ocrCachedDate && (
+                    <span className="text-[11px] text-slate-400 font-medium block mt-1">
+                      Cached on device: {ocrCachedDate}
+                    </span>
+                  )}
+                </div>
               </div>
+            </div>
 
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                   setShowFallbackModal(true);
-                   setPlatformTab('ios');
-                }}
-                className={`w-full sm:w-auto px-6 py-3 font-extrabold rounded-xl shadow-sm transition-all duration-300 shrink-0 relative z-10 flex items-center justify-center gap-2 bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm`}
+            {/* Progress bar during download */}
+            {isDownloadingOCR && (
+              <div className="space-y-2 bg-white p-4 rounded-xl border border-indigo-100">
+                <div className="flex items-center justify-between text-xs font-bold text-indigo-700">
+                  <span className="flex items-center gap-2">
+                    <FaSpinner className="animate-spin" />
+                    <span>{ocrProgress.status || 'Downloading OCR data...'}</span>
+                  </span>
+                  <span>{ocrProgress.percent}%</span>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-indigo-600 h-full rounded-full transition-all duration-300"
+                    style={{ width: `${ocrProgress.percent}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
+
+            {ocrSuccessMsg && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center gap-2">
+                <FaCheckCircle className="text-emerald-500" />
+                <span>OCR Model successfully cached on this device! Offline scanning is now active.</span>
+              </div>
+            )}
+
+            <div className="flex items-center gap-3 pt-1">
+              <button
+                type="button"
+                onClick={handleDownloadOCR}
+                disabled={isDownloadingOCR}
+                className={`px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all active:scale-95 shadow-sm ${
+                  ocrDownloaded
+                    ? 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                    : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200'
+                } disabled:opacity-50`}
               >
-                <FaApple size={18} />
-                on iOS
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                {isDownloadingOCR ? (
+                  <>
+                    <FaSpinner className="animate-spin" size={13} />
+                    <span>Downloading ({ocrProgress.percent}%)...</span>
+                  </>
+                ) : ocrDownloaded ? (
+                  <>
+                    <FaRedo size={12} />
+                    <span>Update / Re-download OCR Data</span>
+                  </>
+                ) : (
+                  <>
+                    <FaCloudDownloadAlt size={14} />
+                    <span>Download OCR Data (~4MB)</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
 
-        <button
-          onClick={requestNotifs}
-          disabled={notifPermission === 'granted'}
-          className="flex items-center gap-4 w-full p-4 rounded-[20px] hover:bg-slate-50 transition-colors text-left active:bg-slate-100 disabled:opacity-50"
-        >
-          <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
-            <FaBell size={18} />
-          </div>
-          <div className="flex flex-col flex-1">
-             <span className="font-bold text-slate-700">Push Notifications</span>
-             <span className="text-xs font-medium text-slate-400">{notifPermission === 'granted' ? 'Enabled' : 'Click to enable device alerts'}</span>
-          </div>
-        </button>
-        <button className="flex items-center gap-4 w-full p-4 rounded-[20px] hover:bg-slate-50 transition-colors text-left active:bg-slate-100">
-          <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-rose-500">
-            <FaSignOutAlt size={18} />
-          </div>
-          <span className="font-bold text-rose-600 flex-1">Sign Out</span>
-        </button>
+          <button className="flex items-center gap-4 w-full p-4 rounded-[20px] hover:bg-slate-50 transition-colors text-left active:bg-slate-100">
+            <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500">
+              <FaCog size={18} />
+            </div>
+            <span className="font-bold text-slate-700 flex-1">Settings</span>
+          </button>
+          <button className="flex items-center gap-4 w-full p-4 rounded-[20px] hover:bg-slate-50 transition-colors text-left active:bg-slate-100">
+            <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
+              <FaShieldAlt size={18} />
+            </div>
+            <span className="font-bold text-slate-700 flex-1">Privacy & Security</span>
+          </button>
+
+          {/* Primary Install App Button */}
+          {!isInstalled && isInstallable && (
+            <button
+              onClick={async () => {
+                setIsInstalling(true);
+                const outcome = await installPWA();
+                setIsInstalling(false);
+                if (outcome === 'accepted') {
+                  setInstallSuccess(true);
+                  setTimeout(() => setInstallSuccess(false), 2000);
+                }
+              }}
+              disabled={isInstalling || installSuccess}
+              className="w-full h-14 mt-1 bg-white text-blue-600 border-2 border-blue-100 rounded-2xl shadow-sm flex items-center justify-center gap-2 font-bold hover:bg-blue-50 transition-colors active:scale-95"
+            >
+              {installSuccess ? <FaCheckCircle size={16} /> : isInstalling ? <FaSpinner size={16} className="animate-spin" /> : <FaDownload size={16} />}
+              <span>{installSuccess ? 'Installed!' : isInstalling ? 'Installing...' : 'Install App as PWA'}</span>
+            </button>
+          )}
+
+          <AnimatePresence>
+            {!isInstalled && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                transition={{ duration: 0.4, type: 'spring', bounce: 0.4 }}
+                className="my-1 p-5 rounded-[24px] bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-200 flex flex-col sm:flex-row items-center gap-4 justify-between relative overflow-hidden group"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+
+                <div className="flex items-center gap-4 relative z-10 w-full sm:w-auto">
+                   <motion.div
+                     animate={isInstalling ? { rotate: 360 } : installSuccess ? { scale: [1, 1.2, 1] } : {}}
+                     transition={isInstalling ? { repeat: Infinity, duration: 1, ease: "linear" } : { duration: 0.5 }}
+                     className={`w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-sm border shrink-0 ${installSuccess ? 'bg-emerald-400/20 border-emerald-400/50' : 'bg-white/20 border-white/30'}`}
+                   >
+                     {installSuccess ? (
+                       <FaCheckCircle size={22} className="text-emerald-300 drop-shadow-md" />
+                     ) : isInstalling ? (
+                       <FaSpinner size={20} className="text-white drop-shadow-md" />
+                     ) : (
+                       <FaDownload size={20} className="text-white drop-shadow-md" />
+                     )}
+                   </motion.div>
+                   <div className="flex flex-col flex-1">
+                     <span className="font-bold text-lg drop-shadow-sm">
+                       Install App
+                     </span>
+                     <span className="text-sm font-medium text-blue-100">
+                       Faster access & offline scanning
+                     </span>
+                     <span className="text-[10px] text-blue-200 mt-0.5 uppercase tracking-wider font-bold">
+                       Install then download OCR for 100% offline usage
+                     </span>
+                   </div>
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                     setShowFallbackModal(true);
+                     setPlatformTab('ios');
+                  }}
+                  className={`w-full sm:w-auto px-6 py-3 font-extrabold rounded-xl shadow-sm transition-all duration-300 shrink-0 relative z-10 flex items-center justify-center gap-2 bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm`}
+                >
+                  <FaApple size={18} />
+                  on iOS
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <button
+            onClick={requestNotifs}
+            disabled={notifPermission === 'granted'}
+            className="flex items-center gap-4 w-full p-4 rounded-[20px] hover:bg-slate-50 transition-colors text-left active:bg-slate-100 disabled:opacity-50"
+          >
+            <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
+              <FaBell size={18} />
+            </div>
+            <div className="flex flex-col flex-1">
+               <span className="font-bold text-slate-700">Push Notifications</span>
+               <span className="text-xs font-medium text-slate-400">{notifPermission === 'granted' ? 'Enabled' : 'Click to enable device alerts'}</span>
+            </div>
+          </button>
+          <button className="flex items-center gap-4 w-full p-4 rounded-[20px] hover:bg-slate-50 transition-colors text-left active:bg-slate-100">
+            <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-rose-500">
+              <FaSignOutAlt size={18} />
+            </div>
+            <span className="font-bold text-rose-600 flex-1">Sign Out</span>
+          </button>
         </div>
       </div>
 
@@ -232,7 +368,7 @@ export const Profile: React.FC = () => {
                           1
                         </div>
                         <div className="text-sm font-medium text-slate-700 flex-1">
-                          Tap the <FaEllipsisV className="inline text-slate-500 mx-1 mb-1" /> <strong>Menu</strong> icon in the top right corner of Chrome.
+                          Tap the browser menu (three dots in top right).
                         </div>
                       </div>
                       <div className="flex items-center gap-4 text-left">
@@ -240,13 +376,7 @@ export const Profile: React.FC = () => {
                           2
                         </div>
                         <div className="text-sm font-medium text-slate-700 flex-1">
-                          Select <br />
-                          <span className="inline-flex items-center gap-1 mt-1 bg-white px-2 py-1 rounded shadow-sm text-xs font-bold text-slate-800">
-                            <FaDownload className="text-slate-400" /> Install App
-                          </span> or <br/>
-                          <span className="inline-flex items-center gap-1 mt-1 bg-white px-2 py-1 rounded shadow-sm text-xs font-bold text-slate-800">
-                            <FaPlusSquare className="text-slate-400" /> Add to Home Screen
-                          </span>
+                          Select <strong>Install app</strong> or <strong>Add to Home screen</strong>.
                         </div>
                       </div>
                     </>
@@ -255,9 +385,9 @@ export const Profile: React.FC = () => {
 
                 <button
                   onClick={() => setShowFallbackModal(false)}
-                  className="w-full py-3.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors active:scale-95"
+                  className="w-full py-3.5 bg-slate-800 text-white font-bold rounded-2xl active:scale-95 transition-transform"
                 >
-                  Got it!
+                  Got it
                 </button>
               </div>
             </motion.div>
