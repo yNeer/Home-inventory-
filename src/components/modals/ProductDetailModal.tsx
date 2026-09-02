@@ -1,28 +1,78 @@
-import React, { useState } from 'react';
-import { InventoryItem } from '../../db';
-import { FaTimes, FaRegCalendarAlt, FaBarcode, FaTrash, FaPills, FaBox, FaSearchPlus, FaCheck, FaCopy } from 'react-icons/fa';
+import React, { useState, useMemo } from 'react';
+import {
+  InventoryItem,
+  getItemStock,
+  isItemLowQuantity,
+  markItemUsedToday,
+  undoItemUsedToday,
+  adjustItemStock,
+  getTodayDateString
+} from '../../db';
+import {
+  FaTimes,
+  FaRegCalendarAlt,
+  FaBarcode,
+  FaTrash,
+  FaPills,
+  FaBox,
+  FaSearchPlus,
+  FaCheck,
+  FaCopy,
+  FaPlus,
+  FaMinus,
+  FaExclamationCircle,
+  FaHistory,
+  FaEdit
+} from 'react-icons/fa';
 import { format, differenceInDays } from 'date-fns';
 
 interface ProductDetailModalProps {
   item: InventoryItem | null;
   onClose: () => void;
   onDelete?: (id: number) => void;
+  onEdit?: (item: InventoryItem) => void;
+  onItemUpdated?: () => void;
 }
 
-export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ item, onClose, onDelete }) => {
+export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ item, onClose, onDelete, onEdit, onItemUpdated }) => {
   const [isZoomed, setIsZoomed] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [justLogged, setJustLogged] = useState(false);
+  const todayStr = useMemo(() => getTodayDateString(), []);
 
   if (!item) return null;
 
   const isMedicine = item.type === 'medicine';
   const expiryDate = item.expiryDate ? new Date(item.expiryDate) : null;
   const daysLeft = expiryDate ? differenceInDays(expiryDate, new Date()) : null;
+  const stock = getItemStock(item);
+  const isLow = isItemLowQuantity(item);
+  const isUsedToday = item.lastUsedDate === todayStr && (item.usedTodayCount || 0) > 0;
 
   const copyText = (text: string, label: string) => {
     navigator.clipboard?.writeText(text);
     setCopiedField(label);
     setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const handleUseToday = async () => {
+    if (!item.id) return;
+    await markItemUsedToday(item.id);
+    setJustLogged(true);
+    if (onItemUpdated) onItemUpdated();
+    setTimeout(() => setJustLogged(false), 2000);
+  };
+
+  const handleUndoUsed = async () => {
+    if (!item.id) return;
+    await undoItemUsedToday(item.id);
+    if (onItemUpdated) onItemUpdated();
+  };
+
+  const handleAdjustStock = async (delta: number) => {
+    if (!item.id) return;
+    await adjustItemStock(item.id, delta);
+    if (onItemUpdated) onItemUpdated();
   };
 
   return (
@@ -46,13 +96,29 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ item, on
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-95 transition-all"
-            aria-label="Close"
-          >
-            <FaTimes size={18} />
-          </button>
+          <div className="flex items-center gap-1.5">
+            {onEdit && (
+              <button
+                type="button"
+                onClick={() => {
+                  onEdit(item);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs transition-all active:scale-95 border border-indigo-100"
+                title="Edit this product"
+              >
+                <FaEdit size={12} />
+                <span>Edit</span>
+              </button>
+            )}
+
+            <button
+              onClick={onClose}
+              className="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-95 transition-all"
+              aria-label="Close"
+            >
+              <FaTimes size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Scrollable Content */}
@@ -102,6 +168,81 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ item, on
             </div>
           )}
 
+          {/* Quantity & Used Today Interactive Controls */}
+          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">Inventory Stock</span>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="font-extrabold text-slate-800 text-lg">{stock} in stock</span>
+                  {stock <= 0 ? (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200 flex items-center gap-1">
+                      <FaExclamationCircle size={9} /> Out of Stock
+                    </span>
+                  ) : isLow ? (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1">
+                      <FaExclamationCircle size={9} /> Low Quantity
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1 bg-white rounded-xl p-1 border border-slate-200 shadow-xs">
+                <button
+                  onClick={() => handleAdjustStock(-1)}
+                  disabled={stock <= 0}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 disabled:opacity-30 active:scale-95 transition-all"
+                  title="Decrease stock"
+                >
+                  <FaMinus size={11} />
+                </button>
+                <span className="font-mono font-bold text-sm px-2 text-slate-800 min-w-[28px] text-center">{stock}</span>
+                <button
+                  onClick={() => handleAdjustStock(1)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 active:scale-95 transition-all"
+                  title="Increase / Restock"
+                >
+                  <FaPlus size={11} />
+                </button>
+              </div>
+            </div>
+
+            {/* Used Today Row */}
+            <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">Today's Consumption</span>
+                <span className="text-xs font-bold text-slate-700">
+                  {isUsedToday
+                    ? `Used ${item.usedTodayCount}x today (logged ${item.lastUsedTime || 'today'})`
+                    : 'Not consumed yet today'}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {isUsedToday && (
+                  <button
+                    onClick={handleUndoUsed}
+                    className="text-xs font-bold text-slate-500 hover:text-slate-800 px-3 py-1.5 rounded-xl hover:bg-slate-200 transition-colors flex items-center gap-1"
+                  >
+                    <FaHistory size={10} /> Undo
+                  </button>
+                )}
+                <button
+                  onClick={handleUseToday}
+                  disabled={stock <= 0}
+                  className={`text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 transition-all active:scale-95 shadow-xs ${
+                    justLogged
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-40 disabled:pointer-events-none'
+                  }`}
+                >
+                  <FaCheck size={11} />
+                  <span>{justLogged ? 'Logged!' : isUsedToday ? '+ Log Another Dose/Use' : 'Log Used Today'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Key Specifications Grid (Batch No, Mfg, Price, Barcode) */}
           <div className="grid grid-cols-2 gap-3">
             {item.batchNo && (
@@ -129,7 +270,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ item, on
 
             {item.mfgDate && (
               <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-1">Mfg Date</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-1">Manufacturing Date (Mfg)</span>
                 <div className="font-bold text-slate-700 text-sm">{format(new Date(item.mfgDate), 'MMM dd, yyyy')}</div>
               </div>
             )}
@@ -205,12 +346,26 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ item, on
             <div></div>
           )}
 
-          <button
-            onClick={onClose}
-            className="px-6 py-2.5 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-900 transition-colors active:scale-95 text-sm"
-          >
-            Close
-          </button>
+          <div className="flex items-center gap-2">
+            {onEdit && (
+              <button
+                type="button"
+                onClick={() => {
+                  onEdit(item);
+                }}
+                className="px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl transition-colors active:scale-95 text-sm flex items-center gap-1.5 border border-indigo-200"
+              >
+                <FaEdit size={13} /> Edit Item
+              </button>
+            )}
+
+            <button
+              onClick={onClose}
+              className="px-6 py-2.5 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-900 transition-colors active:scale-95 text-sm"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </div>

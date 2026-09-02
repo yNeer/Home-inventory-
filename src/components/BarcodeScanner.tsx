@@ -26,7 +26,14 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onResult, onClose }) =>
     scanner.render(
       (decodedText) => {
         // Stop scanning after first successful read
-        scanner.clear();
+        try {
+          const res = scanner.clear();
+          if (res && typeof (res as any).catch === 'function') {
+            (res as any).catch(() => {});
+          }
+        } catch {
+          // ignore
+        }
         onResult(decodedText);
       },
       (err) => {
@@ -39,7 +46,14 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onResult, onClose }) =>
 
     return () => {
       if (scannerRef.current) {
-        scannerRef.current.clear().catch(e => console.error("Failed to clear scanner", e));
+        try {
+          const res = scannerRef.current.clear();
+          if (res && typeof (res as any).catch === 'function') {
+            (res as any).catch((e: any) => console.warn("Failed to clear scanner", e));
+          }
+        } catch (e) {
+          console.warn("Failed to clear scanner", e);
+        }
       }
     };
   }, [onResult]);

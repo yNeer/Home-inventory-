@@ -17,13 +17,16 @@ export const Notifications: React.FC = () => {
     setDismissed(prev => [...prev, id]);
   };
 
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
   const handleRemindLater = async (id: number, minutes: number, name: string) => {
     await scheduleLocalNotification(
        `Time for ${name}`,
        `Your snoozed reminder for ${minutes} minutes is up.`,
        minutes
     );
-    alert(`Native reminder scheduled for ${minutes} minutes from now.`);
+    setToastMessage(`Reminder scheduled for ${minutes} minutes from now.`);
+    setTimeout(() => setToastMessage(null), 3000);
     handleDismiss(id);
   };
 
@@ -43,6 +46,15 @@ export const Notifications: React.FC = () => {
           <FaBell className="text-xl md:text-2xl" />
         </div>
       </header>
+
+      {toastMessage && (
+        <div className="mb-6 p-4 bg-indigo-50 border border-indigo-200 text-indigo-700 font-bold text-xs rounded-2xl animate-in fade-in flex items-center justify-between">
+          <span>{toastMessage}</span>
+          <button onClick={() => setToastMessage(null)} className="text-indigo-400 hover:text-indigo-600">
+            <FaTimes size={12} />
+          </button>
+        </div>
+      )}
 
       {activeMeds.length === 0 ? (
         <div className="text-center py-20 bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col items-center">

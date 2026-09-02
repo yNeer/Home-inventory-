@@ -1,22 +1,36 @@
 import { useState } from 'react';
 import Dashboard from './components/Dashboard';
 import AddItem from './components/AddItem';
-import { InventoryList, Profile, Notifications, Medicines } from './components';
+import { InventoryList, Profile, Notifications, Medicines, ItemDetailPage } from './components';
+import { EditProductModal } from './components/modals/EditProductModal';
 import { FaHome, FaBoxOpen, FaUserCircle, FaPlus, FaBell, FaPills, FaDownload } from 'react-icons/fa';
 import { usePWAInstall } from './hooks/usePWAInstall';
 import { AppLogo } from './components/ui/AppLogo';
+import { InventoryItem } from './db';
 import './App.css';
 
-type ViewState = 'dashboard' | 'inventory' | 'profile' | 'add' | 'notifications' | 'medicines';
+type ViewState = 'dashboard' | 'inventory' | 'profile' | 'add' | 'notifications' | 'medicines' | 'item-detail';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
+  const [previousView, setPreviousView] = useState<ViewState>('dashboard');
+  const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
+  const [selectedItemFallback, setSelectedItemFallback] = useState<InventoryItem | null>(null);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [addItemType, setAddItemType] = useState<'grocery' | 'medicine'>('grocery');
   const { isInstallable, installPWA } = usePWAInstall();
 
   const handleAddNew = (type: 'grocery' | 'medicine' = 'grocery') => {
     setAddItemType(type);
+    setPreviousView(currentView);
     setCurrentView('add');
+  };
+
+  const handleOpenItemDetail = (item: InventoryItem) => {
+    setSelectedItemId(item.id || null);
+    setSelectedItemFallback(item);
+    setPreviousView(currentView);
+    setCurrentView('item-detail');
   };
 
   // Read PWA Shortcut actions from URL
@@ -38,29 +52,58 @@ function App() {
   const renderView = () => {
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard
-                  onAddNew={() => handleAddNew('grocery')}
-                  onNotifications={() => setCurrentView('notifications')}
-                  onViewInventory={() => setCurrentView('inventory')}
-                  onViewMedicines={() => setCurrentView('medicines')}
-                />;
+        return (
+          <Dashboard
+            onAddNew={() => handleAddNew('grocery')}
+            onNotifications={() => setCurrentView('notifications')}
+            onViewInventory={() => setCurrentView('inventory')}
+            onViewMedicines={() => setCurrentView('medicines')}
+            onViewItem={handleOpenItemDetail}
+            onEdit={setEditingItem}
+          />
+        );
+      case 'item-detail':
+        return (
+          <ItemDetailPage
+            itemId={selectedItemId}
+            fallbackItem={selectedItemFallback}
+            onBack={() => setCurrentView(previousView === 'item-detail' ? 'dashboard' : previousView)}
+            onItemDeleted={() => setCurrentView(previousView === 'item-detail' ? 'dashboard' : previousView)}
+            onEdit={setEditingItem}
+          />
+        );
       case 'medicines':
-        return <Medicines onAddNew={() => handleAddNew('medicine')} />;
+        return (
+          <Medicines
+            onAddNew={() => handleAddNew('medicine')}
+            onViewItem={handleOpenItemDetail}
+            onEdit={setEditingItem}
+          />
+        );
       case 'inventory':
-        return <InventoryList />;
+        return (
+          <InventoryList
+            onViewItem={handleOpenItemDetail}
+            onEdit={setEditingItem}
+          />
+        );
       case 'profile':
         return <Profile />;
       case 'notifications':
         return <Notifications />;
       case 'add':
-        return <AddItem onBack={() => setCurrentView('dashboard')} initialType={addItemType} />;
+        return <AddItem onBack={() => setCurrentView(previousView === 'add' ? 'dashboard' : previousView)} initialType={addItemType} />;
       default:
-        return <Dashboard
-                  onAddNew={() => handleAddNew('grocery')}
-                  onNotifications={() => setCurrentView('notifications')}
-                  onViewInventory={() => setCurrentView('inventory')}
-                  onViewMedicines={() => setCurrentView('medicines')}
-                />;
+        return (
+          <Dashboard
+            onAddNew={() => handleAddNew('grocery')}
+            onNotifications={() => setCurrentView('notifications')}
+            onViewInventory={() => setCurrentView('inventory')}
+            onViewMedicines={() => setCurrentView('medicines')}
+            onViewItem={handleOpenItemDetail}
+            onEdit={setEditingItem}
+          />
+        );
     }
   };
 
@@ -178,6 +221,13 @@ function App() {
             </div>
           </nav>
         )}
+
+        {/* Global Edit Product Modal */}
+        <EditProductModal
+          item={editingItem}
+          isOpen={!!editingItem}
+          onClose={() => setEditingItem(null)}
+        />
       </main>
     </div>
   );
