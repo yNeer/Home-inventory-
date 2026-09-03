@@ -15,6 +15,10 @@ export interface InventoryItem {
   medicineTiming?: 'before_food' | 'after_food' | 'any';
   totalQuantity?: number;
   dailyDose?: number;
+  doseUnit?: string; // e.g. "tablets", "capsules", "ml", "drops", "puffs", "mg"
+  doseFrequency?: string; // e.g. "Once Daily", "Twice Daily (1-0-1)", "Thrice Daily (1-1-1)", "As Needed (SOS)"
+  doseTimes?: string[]; // e.g. ["Morning", "Night"]
+  doseInstructions?: string; // special notes e.g. "Take with plenty of water"
   quantity?: number; // current quantity on hand
   lowQuantityThreshold?: number; // default 2
   lastUsedDate?: string; // YYYY-MM-DD
@@ -25,8 +29,25 @@ export interface InventoryItem {
   image?: string;
 }
 
+export interface UsageLogEntry {
+  id?: number;
+  itemId?: number;
+  itemName: string;
+  itemType: 'grocery' | 'medicine';
+  amountUsed: number;
+  unit?: string;
+  timestamp: string; // ISO string
+  date: string; // YYYY-MM-DD
+  time: string; // e.g. "10:30 AM"
+  notes?: string;
+  doseTiming?: 'before_food' | 'after_food' | 'any';
+  remainingStock?: number;
+  image?: string;
+}
+
 export class HomeInventoryDB extends Dexie {
   items!: Table<InventoryItem>;
+  logs!: Table<UsageLogEntry>;
 
   constructor() {
     super('HomeInventoryDB');
@@ -68,6 +89,11 @@ export class HomeInventoryDB extends Dexie {
     this.version(7).stores({
       items: '++id, name, type, purchaseDate, mfgDate, expiryDate, price, batchNo, barcode, reminderOption, medicineTiming, totalQuantity, dailyDose, quantity, lastUsedDate'
     });
+    // Version 8 Schema update: Added UsageLogEntry table and dose metadata
+    this.version(8).stores({
+      items: '++id, name, type, purchaseDate, mfgDate, expiryDate, price, batchNo, barcode, reminderOption, medicineTiming, totalQuantity, dailyDose, doseUnit, doseFrequency, quantity, lastUsedDate',
+      logs: '++id, itemId, itemName, itemType, date, timestamp'
+    });
   }
 }
 
@@ -93,7 +119,12 @@ export const isItemLowQuantity = (item: InventoryItem): boolean => {
   return stock <= threshold;
 };
 
-export const markItemUsedToday = async (id: number, amount: number = 1) => {
+export const markItemUsedToday = async (
+  id: number,
+  amount: number = 1,
+  customNotes?: string,
+  customUnit?: string
+) => {
   const item = await db.items.get(id);
   if (!item) return;
 
@@ -113,6 +144,27 @@ export const markItemUsedToday = async (id: number, amount: number = 1) => {
     usedTodayCount: newCount,
     quantity: newStock
   });
+
+  // Record into persistent usage log
+  try {
+    const unit = customUnit || (item.type === 'medicine' ? (item.doseUnit || 'dose') : 'unit');
+    await db.logs.add({
+      itemId: id,
+      itemName: item.name,
+      itemType: item.type,
+      amountUsed: amount,
+      unit,
+      timestamp: now.toISOString(),
+      date: today,
+      time: timeStr,
+      notes: customNotes || (item.type === 'medicine' ? (item.medicineTiming ? `Timing: ${item.medicineTiming.replace('_', ' ')}` : undefined) : undefined),
+      doseTiming: item.medicineTiming,
+      remainingStock: newStock,
+      image: item.image
+    });
+  } catch (err) {
+    console.error('Failed to log usage entry:', err);
+  }
 };
 
 export const undoItemUsedToday = async (id: number) => {
@@ -138,6 +190,22 @@ export const undoItemUsedToday = async (id: number) => {
       quantity: currentStock + 1
     });
   }
+
+  // Remove the most recent log for this item today
+  try {
+    const latestLog = await db.logs
+      .where('itemId')
+      .equals(id)
+      .reverse()
+      .sortBy('timestamp');
+
+    const todayLog = latestLog.find(l => l.date === today);
+    if (todayLog && todayLog.id) {
+      await db.logs.delete(todayLog.id);
+    }
+  } catch (err) {
+    console.error('Failed to remove log on undo:', err);
+  }
 };
 
 export const adjustItemStock = async (id: number, delta: number) => {
@@ -151,3 +219,40 @@ export const adjustItemStock = async (id: number, delta: number) => {
     quantity: newStock
   });
 };
+
+export const updateMedicineDose = async (
+  id: number,
+  doseData: {
+    dailyDose?: number;
+    doseUnit?: string;
+    doseFrequency?: string;
+    medicineTiming?: 'before_food' | 'after_food' | 'any';
+    doseInstructions?: string;
+    doseTimes?: string[];
+  }
+) => {
+  await db.items.update(id, {
+    ...doseData
+  });
+};
+
+export const deleteLogEntry = async (logId: number, restoreStock: boolean = false) => {
+  if (restoreStock) {
+    const log = await db.logs.get(logId);
+    if (log && log.itemId) {
+      const item = await db.items.get(log.itemId);
+      if (item) {
+        const curStock = getItemStock(item);
+        await db.items.update(log.itemId, {
+          quantity: curStock + (log.amountUsed || 1)
+        });
+      }
+    }
+  }
+  await db.logs.delete(logId);
+};
+
+export const clearAllLogs = async () => {
+  await db.logs.clear();
+};
+

@@ -48,6 +48,9 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
         components: item.components || '',
         medicineTiming: item.medicineTiming || 'any',
         dailyDose: item.dailyDose !== undefined ? item.dailyDose : 1,
+        doseUnit: item.doseUnit || 'tablets',
+        doseFrequency: item.doseFrequency || 'Once Daily (1-0-0)',
+        doseInstructions: item.doseInstructions || '',
         details: item.details || '',
         description: item.description || '',
         reminderOption: item.reminderOption || 'none',
@@ -102,6 +105,9 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
       if (formData.type === 'medicine') {
         updatedFields.medicineTiming = formData.medicineTiming || 'any';
         updatedFields.dailyDose = Number(formData.dailyDose) >= 0 ? Number(formData.dailyDose) : 1;
+        updatedFields.doseUnit = formData.doseUnit || 'tablets';
+        updatedFields.doseFrequency = formData.doseFrequency || 'Once Daily (1-0-0)';
+        updatedFields.doseInstructions = formData.doseInstructions ? formData.doseInstructions.trim() : '';
       }
 
       await db.items.update(item.id, updatedFields);
@@ -405,6 +411,47 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label
+                    htmlFor="edit-daily-dose"
+                    className="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider block mb-1"
+                  >
+                    Dose Amount
+                  </label>
+                  <input
+                    id="edit-daily-dose"
+                    type="number"
+                    name="dailyDose"
+                    min="0"
+                    step="0.5"
+                    value={formData.dailyDose !== undefined ? formData.dailyDose : 1}
+                    onChange={handleChange}
+                    className="w-full bg-white rounded-xl px-3 py-2.5 text-slate-800 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-rose-300 border border-rose-200"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="edit-dose-unit"
+                    className="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider block mb-1"
+                  >
+                    Dose Unit
+                  </label>
+                  <select
+                    id="edit-dose-unit"
+                    name="doseUnit"
+                    value={formData.doseUnit || 'tablets'}
+                    onChange={handleChange}
+                    className="w-full bg-white rounded-xl px-3 py-2.5 text-slate-800 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-rose-300 border border-rose-200"
+                  >
+                    {['tablets', 'capsules', 'ml', 'drops', 'puffs', 'sachets', 'teaspoon', 'mg'].map(u => (
+                      <option key={u} value={u}>{u}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label
                     htmlFor="edit-medicine-timing"
                     className="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider block mb-1"
                   >
@@ -425,22 +472,44 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
 
                 <div>
                   <label
-                    htmlFor="edit-daily-dose"
+                    htmlFor="edit-dose-frequency"
                     className="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider block mb-1"
                   >
-                    Daily Dose (units/day)
+                    Routine / Frequency
                   </label>
-                  <input
-                    id="edit-daily-dose"
-                    type="number"
-                    name="dailyDose"
-                    min="0"
-                    step="0.5"
-                    value={formData.dailyDose !== undefined ? formData.dailyDose : 1}
+                  <select
+                    id="edit-dose-frequency"
+                    name="doseFrequency"
+                    value={formData.doseFrequency || 'Once Daily (1-0-0)'}
                     onChange={handleChange}
                     className="w-full bg-white rounded-xl px-3 py-2.5 text-slate-800 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-rose-300 border border-rose-200"
-                  />
+                  >
+                    <option value="Once Daily (1-0-0)">Once Daily (1-0-0)</option>
+                    <option value="Twice Daily (1-0-1)">Twice Daily (1-0-1)</option>
+                    <option value="Thrice Daily (1-1-1)">Thrice Daily (1-1-1)</option>
+                    <option value="Four Times Daily">Four Times Daily</option>
+                    <option value="Before Bed (0-0-1)">Before Bed (0-0-1)</option>
+                    <option value="As Needed (SOS)">As Needed (SOS)</option>
+                  </select>
                 </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="edit-dose-instructions"
+                  className="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider block mb-1"
+                >
+                  Doctor's Instructions & Notes
+                </label>
+                <input
+                  id="edit-dose-instructions"
+                  type="text"
+                  name="doseInstructions"
+                  value={formData.doseInstructions || ''}
+                  onChange={handleChange}
+                  placeholder="e.g. Take with warm water after dinner"
+                  className="w-full bg-white rounded-xl px-3 py-2.5 text-slate-800 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-rose-300 border border-rose-200"
+                />
               </div>
             </div>
           )}

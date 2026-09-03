@@ -22,7 +22,8 @@ import {
   FaMinus,
   FaExclamationCircle,
   FaHistory,
-  FaEdit
+  FaEdit,
+  FaUtensils
 } from 'react-icons/fa';
 import { format, differenceInDays } from 'date-fns';
 
@@ -242,6 +243,61 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ item, on
               </div>
             </div>
           </div>
+
+          {/* Medication Dose & Schedule Details */}
+          {isMedicine && (
+            <div className="bg-rose-50/70 border border-rose-100 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-rose-500 text-white flex items-center justify-center text-xs">
+                    <FaPills size={11} />
+                  </div>
+                  <span className="text-xs font-black text-rose-950 uppercase tracking-wider">
+                    Medication Dosage & Routine
+                  </span>
+                </div>
+                {onEdit && (
+                  <button
+                    onClick={() => onEdit(item)}
+                    className="text-[11px] font-extrabold text-rose-600 hover:text-rose-800 bg-white px-2.5 py-1 rounded-xl border border-rose-200 shadow-2xs hover:bg-rose-50 transition-colors"
+                  >
+                    Edit Dose
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                <div className="bg-white rounded-xl p-2.5 border border-rose-100">
+                  <span className="text-[9.5px] font-extrabold uppercase text-slate-400 block mb-0.5">Dose Amount</span>
+                  <span className="text-xs font-black text-rose-900">
+                    {item.dailyDose ? `${item.dailyDose} ${item.doseUnit || 'dose'}` : '1 dose'}
+                  </span>
+                </div>
+
+                <div className="bg-white rounded-xl p-2.5 border border-rose-100">
+                  <span className="text-[9.5px] font-extrabold uppercase text-slate-400 block mb-0.5">Frequency</span>
+                  <span className="text-xs font-bold text-slate-800 truncate block">
+                    {item.doseFrequency || 'Daily'}
+                  </span>
+                </div>
+
+                <div className="bg-white rounded-xl p-2.5 border border-rose-100 col-span-2 sm:col-span-1">
+                  <span className="text-[9.5px] font-extrabold uppercase text-slate-400 block mb-0.5">Meal Timing</span>
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1">
+                    <FaUtensils size={9} className="text-rose-400" />
+                    {item.medicineTiming ? item.medicineTiming.replace('_', ' ') : 'Anytime'}
+                  </span>
+                </div>
+              </div>
+
+              {item.doseInstructions && (
+                <div className="bg-white/80 rounded-xl p-2.5 border border-rose-100 text-xs">
+                  <span className="text-[9.5px] font-extrabold uppercase text-slate-400 block mb-0.5">Doctor's Instructions</span>
+                  <p className="text-slate-700 font-medium">{item.doseInstructions}</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Key Specifications Grid (Batch No, Mfg, Price, Barcode) */}
           <div className="grid grid-cols-2 gap-3">

@@ -29,6 +29,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { ProductDetailModal } from '../modals/ProductDetailModal';
 import { EditProductModal } from '../modals/EditProductModal';
+import { MedicineDoseModal } from '../modals/MedicineDoseModal';
 import { ItemCard } from '../cards/ItemCard';
 import { format, differenceInDays, isBefore } from 'date-fns';
 
@@ -46,6 +47,7 @@ export const InventoryList: React.FC<InventoryListProps> = ({ onViewItem, onEdit
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<InventoryItem | null>(null);
   const [localEditItem, setLocalEditItem] = useState<InventoryItem | null>(null);
+  const [editingDoseItem, setEditingDoseItem] = useState<InventoryItem | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [sortOption, setSortOption] = useState<SortOption>('expiry_asc');
 
@@ -337,6 +339,7 @@ export const InventoryList: React.FC<InventoryListProps> = ({ onViewItem, onEdit
                   onDelete={() => handleDelete(item.id)}
                   onView={handleView}
                   onEdit={handleEdit}
+                  onEditDose={(med) => setEditingDoseItem(med)}
                 />
               ))}
             </div>
@@ -518,6 +521,21 @@ export const InventoryList: React.FC<InventoryListProps> = ({ onViewItem, onEdit
           onClose={() => setSelectedProduct(null)}
           onDelete={handleDelete}
           onEdit={handleEdit}
+        />
+      )}
+
+      {/* Medicine Dose Editing Modal */}
+      {editingDoseItem && (
+        <MedicineDoseModal
+          item={editingDoseItem}
+          isOpen={!!editingDoseItem}
+          onClose={() => setEditingDoseItem(null)}
+          onUpdated={(updated) => {
+            setEditingDoseItem(null);
+            if (selectedProduct?.id === updated.id) {
+              setSelectedProduct(updated);
+            }
+          }}
         />
       )}
 

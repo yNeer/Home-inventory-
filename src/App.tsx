@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import Dashboard from './components/Dashboard';
 import AddItem from './components/AddItem';
-import { InventoryList, Profile, Notifications, Medicines, ItemDetailPage } from './components';
+import { InventoryList, Profile, Notifications, Medicines, ItemDetailPage, ReportsPage, ActivityLog } from './components';
 import { EditProductModal } from './components/modals/EditProductModal';
-import { FaHome, FaBoxOpen, FaUserCircle, FaPlus, FaBell, FaPills, FaDownload } from 'react-icons/fa';
+import { FaHome, FaBoxOpen, FaUserCircle, FaPlus, FaBell, FaPills, FaDownload, FaFilePdf, FaHistory } from 'react-icons/fa';
 import { usePWAInstall } from './hooks/usePWAInstall';
 import { AppLogo } from './components/ui/AppLogo';
 import { InventoryItem } from './db';
 import './App.css';
 
-type ViewState = 'dashboard' | 'inventory' | 'profile' | 'add' | 'notifications' | 'medicines' | 'item-detail';
+type ViewState = 'dashboard' | 'inventory' | 'profile' | 'add' | 'notifications' | 'medicines' | 'item-detail' | 'reports' | 'logs';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
@@ -58,10 +58,16 @@ function App() {
             onNotifications={() => setCurrentView('notifications')}
             onViewInventory={() => setCurrentView('inventory')}
             onViewMedicines={() => setCurrentView('medicines')}
+            onViewReports={() => setCurrentView('reports')}
+            onViewLogs={() => setCurrentView('logs')}
             onViewItem={handleOpenItemDetail}
             onEdit={setEditingItem}
           />
         );
+      case 'reports':
+        return <ReportsPage />;
+      case 'logs':
+        return <ActivityLog />;
       case 'item-detail':
         return (
           <ItemDetailPage
@@ -100,6 +106,8 @@ function App() {
             onNotifications={() => setCurrentView('notifications')}
             onViewInventory={() => setCurrentView('inventory')}
             onViewMedicines={() => setCurrentView('medicines')}
+            onViewReports={() => setCurrentView('reports')}
+            onViewLogs={() => setCurrentView('logs')}
             onViewItem={handleOpenItemDetail}
             onEdit={setEditingItem}
           />
@@ -130,6 +138,14 @@ function App() {
             <button onClick={() => setCurrentView('inventory')} className={`flex items-center gap-4 w-full px-6 py-4 rounded-2xl font-bold transition-all ${currentView === 'inventory' ? 'bg-emerald-50 text-emerald-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}>
               <FaBoxOpen size={20} className={currentView === 'inventory' ? 'drop-shadow-sm' : ''} />
               <span>Inventory</span>
+            </button>
+            <button onClick={() => setCurrentView('reports')} className={`flex items-center gap-4 w-full px-6 py-4 rounded-2xl font-bold transition-all ${currentView === 'reports' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}>
+              <FaFilePdf size={19} className={currentView === 'reports' ? 'drop-shadow-sm' : ''} />
+              <span>Reports & PDF</span>
+            </button>
+            <button onClick={() => setCurrentView('logs')} className={`flex items-center gap-4 w-full px-6 py-4 rounded-2xl font-bold transition-all ${currentView === 'logs' ? 'bg-purple-50 text-purple-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}>
+              <FaHistory size={19} className={currentView === 'logs' ? 'drop-shadow-sm' : ''} />
+              <span>Activity Log</span>
             </button>
             <button onClick={() => setCurrentView('profile')} className={`flex items-center gap-4 w-full px-6 py-4 rounded-2xl font-bold transition-all ${currentView === 'profile' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}>
               <FaUserCircle size={20} className={currentView === 'profile' ? 'drop-shadow-sm' : ''} />

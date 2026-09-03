@@ -22,6 +22,7 @@ import {
 } from 'react-icons/fa';
 import { ItemCard } from '../cards/ItemCard';
 import { ProductDetailModal } from '../modals/ProductDetailModal';
+import { MedicineDoseModal } from '../modals/MedicineDoseModal';
 import { differenceInDays, isBefore } from 'date-fns';
 
 type MedicineFilter = 'all' | 'before_food' | 'after_food' | 'low_stock' | 'near_expiry';
@@ -37,6 +38,7 @@ export const Medicines: React.FC<MedicinesProps> = ({ onAddNew, onViewItem, onEd
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<MedicineFilter>('all');
   const [selectedMedicine, setSelectedMedicine] = useState<InventoryItem | null>(null);
+  const [editingDoseItem, setEditingDoseItem] = useState<InventoryItem | null>(null);
 
   const todayStr = useMemo(() => getTodayDateString(), []);
 
@@ -315,12 +317,28 @@ export const Medicines: React.FC<MedicinesProps> = ({ onAddNew, onViewItem, onEd
                   onDelete={handleDelete}
                   onView={handleView}
                   onEdit={onEdit}
+                  onEditDose={(med) => setEditingDoseItem(med)}
                 />
               ))}
             </div>
           </div>
         );
       })()}
+
+      {/* Medicine Dose Editing Modal */}
+      {editingDoseItem && (
+        <MedicineDoseModal
+          item={editingDoseItem}
+          isOpen={!!editingDoseItem}
+          onClose={() => setEditingDoseItem(null)}
+          onUpdated={(updated) => {
+            setEditingDoseItem(null);
+            if (selectedMedicine?.id === updated.id) {
+              setSelectedMedicine(updated);
+            }
+          }}
+        />
+      )}
 
       {/* Product Detail Modal */}
       {selectedMedicine && (

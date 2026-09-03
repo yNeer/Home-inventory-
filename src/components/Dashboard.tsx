@@ -26,12 +26,15 @@ import {
   FaLightbulb,
   FaCompressAlt,
   FaExpandAlt,
-  FaExternalLinkAlt
+  FaExternalLinkAlt,
+  FaFilePdf,
+  FaHistory
 } from 'react-icons/fa';
 import { ItemCard } from './cards/ItemCard';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { ProductDetailModal } from './modals/ProductDetailModal';
 import { EditProductModal } from './modals/EditProductModal';
+import { MedicineDoseModal } from './modals/MedicineDoseModal';
 import { InventorySuggestions } from './dashboard/InventorySuggestions';
 import { CollapsibleCard } from './dashboard/CollapsibleCard';
 import { differenceInDays, isBefore } from 'date-fns';
@@ -41,6 +44,8 @@ interface DashboardProps {
   onNotifications?: () => void;
   onViewInventory?: () => void;
   onViewMedicines?: () => void;
+  onViewReports?: () => void;
+  onViewLogs?: () => void;
   onViewItem?: (item: InventoryItem) => void;
   onEdit?: (item: InventoryItem) => void;
 }
@@ -52,6 +57,8 @@ const Dashboard: React.FC<DashboardProps> = ({
   onNotifications,
   onViewInventory,
   onViewMedicines,
+  onViewReports,
+  onViewLogs,
   onViewItem,
   onEdit
 }) => {
@@ -63,6 +70,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [isInstalling, setIsInstalling] = useState(false);
   const [selectedItemForModal, setSelectedItemForModal] = useState<InventoryItem | null>(null);
   const [localEditingItem, setLocalEditingItem] = useState<InventoryItem | null>(null);
+  const [editingDoseItem, setEditingDoseItem] = useState<InventoryItem | null>(null);
 
   // Collapsible section state persistence
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(() => {
@@ -286,7 +294,31 @@ const Dashboard: React.FC<DashboardProps> = ({
             Inventory.
           </h1>
         </div>
-        <div className="flex gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {onViewReports && (
+            <button
+              onClick={onViewReports}
+              className="flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs border border-indigo-100 shadow-2xs transition-all active:scale-95"
+              title="Reports & PDF Export"
+            >
+              <FaFilePdf size={13} className="text-indigo-600" />
+              <span className="hidden sm:inline">Reports & PDF</span>
+              <span className="sm:hidden">PDF</span>
+            </button>
+          )}
+
+          {onViewLogs && (
+            <button
+              onClick={onViewLogs}
+              className="flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs border border-purple-100 shadow-2xs transition-all active:scale-95"
+              title="Consumption & Activity Log"
+            >
+              <FaHistory size={13} className="text-purple-600" />
+              <span className="hidden sm:inline">Activity Log</span>
+              <span className="sm:hidden">Log</span>
+            </button>
+          )}
+
           {!isInstalled && isInstallable && (
             <button
               onClick={async () => {
@@ -621,6 +653,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                       onDelete={handleDelete}
                       onView={handleViewProduct}
                       onEdit={handleEditProduct}
+                      onEditDose={(med) => setEditingDoseItem(med)}
                     />
                   ))}
                 </div>
@@ -732,6 +765,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                         onDelete={handleDelete}
                         onView={handleViewProduct}
                         onEdit={handleEditProduct}
+                        onEditDose={(med) => setEditingDoseItem(med)}
                       />
                     ))}
                   </div>
@@ -863,6 +897,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                         onDelete={handleDelete}
                         onView={handleViewProduct}
                         onEdit={handleEditProduct}
+                        onEditDose={(med) => setEditingDoseItem(med)}
                       />
                     ))}
                   </div>
@@ -908,6 +943,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                         onDelete={handleDelete}
                         onView={handleViewProduct}
                         onEdit={handleEditProduct}
+                        onEditDose={(med) => setEditingDoseItem(med)}
                       />
                     ))}
                   </div>
@@ -965,6 +1001,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                           onDelete={handleDelete}
                           onView={handleViewProduct}
                           onEdit={handleEditProduct}
+                          onEditDose={(med) => setEditingDoseItem(med)}
                         />
                       ))}
                     </div>
@@ -1035,6 +1072,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                           onDelete={handleDelete}
                           onView={handleViewProduct}
                           onEdit={handleEditProduct}
+                          onEditDose={(med) => setEditingDoseItem(med)}
                         />
                       ))}
                     </div>
@@ -1067,6 +1105,21 @@ const Dashboard: React.FC<DashboardProps> = ({
           onEdit={handleEditProduct}
           onItemUpdated={() => {
             // LiveQuery automatically updates
+          }}
+        />
+      )}
+
+      {/* Medicine Dose Editing Modal */}
+      {editingDoseItem && (
+        <MedicineDoseModal
+          item={editingDoseItem}
+          isOpen={!!editingDoseItem}
+          onClose={() => setEditingDoseItem(null)}
+          onUpdated={(updated) => {
+            setEditingDoseItem(null);
+            if (selectedItemForModal?.id === updated.id) {
+              setSelectedItemForModal(updated);
+            }
           }}
         />
       )}

@@ -31,10 +31,12 @@ import {
   FaInfoCircle,
   FaShieldAlt,
   FaBoxes,
-  FaEdit
+  FaEdit,
+  FaSlidersH
 } from 'react-icons/fa';
 import { format, differenceInDays, isBefore } from 'date-fns';
 import { EditProductModal } from '../modals/EditProductModal';
+import { MedicineDoseModal } from '../modals/MedicineDoseModal';
 
 interface ItemDetailPageProps {
   itemId: number | null;
@@ -65,6 +67,7 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
   const [isZoomed, setIsZoomed] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDoseModalOpen, setIsDoseModalOpen] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [justLogged, setJustLogged] = useState(false);
   const todayStr = useMemo(() => getTodayDateString(), []);
@@ -500,40 +503,71 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
           )}
 
           {/* Medicine Timing & Dosage Routine */}
-          {isMedicine && (item.medicineTiming || item.dailyDose) && (
-            <div className="bg-rose-50/50 rounded-[24px] p-6 border border-rose-100">
-              <div className="flex items-center gap-2 mb-3">
-                <FaPills className="text-rose-600 text-sm" />
-                <span className="text-xs font-extrabold uppercase tracking-widest text-rose-700">
-                  Dosage & Schedule
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                {item.medicineTiming && (
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                      Instructions
-                    </span>
-                    <span className="text-sm font-extrabold text-slate-800 capitalize">
-                      {item.medicineTiming === 'after_food'
-                        ? 'Take after food'
-                        : item.medicineTiming === 'before_food'
-                        ? 'Take before food'
-                        : 'Take anytime'}
-                    </span>
+          {isMedicine && (
+            <div className="bg-rose-50/70 rounded-[28px] p-6 border border-rose-100 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center text-sm shadow-xs">
+                    <FaPills />
                   </div>
-                )}
-                {item.dailyDose && (
                   <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                      Daily Dosage
+                    <span className="text-xs font-black uppercase tracking-widest text-rose-900 block">
+                      Medication Dosage & Routine
                     </span>
-                    <span className="text-sm font-extrabold text-slate-800">
-                      {item.dailyDose} dose(s) per day
-                    </span>
+                    <span className="text-[11px] text-rose-700/80 font-medium">Daily prescription schedule</span>
                   </div>
-                )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsDoseModalOpen(true)}
+                  className="text-xs font-extrabold text-rose-600 hover:text-rose-800 bg-white px-3.5 py-1.5 rounded-xl border border-rose-200 shadow-2xs hover:bg-rose-50 transition-all flex items-center gap-1.5 active:scale-95"
+                >
+                  <FaSlidersH size={11} />
+                  <span>Edit Dose</span>
+                </button>
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="bg-white rounded-2xl p-3 border border-rose-100">
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">
+                    Dose Amount
+                  </span>
+                  <span className="text-sm font-black text-rose-900">
+                    {item.dailyDose ? `${item.dailyDose} ${item.doseUnit || 'dose'}` : '1 dose'}
+                  </span>
+                </div>
+
+                <div className="bg-white rounded-2xl p-3 border border-rose-100">
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">
+                    Frequency
+                  </span>
+                  <span className="text-sm font-bold text-slate-800 truncate block">
+                    {item.doseFrequency || 'Once Daily (1-0-0)'}
+                  </span>
+                </div>
+
+                <div className="bg-white rounded-2xl p-3 border border-rose-100">
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">
+                    Meal Timing
+                  </span>
+                  <span className="text-sm font-bold text-slate-800 capitalize">
+                    {item.medicineTiming === 'after_food'
+                      ? 'After Food'
+                      : item.medicineTiming === 'before_food'
+                      ? 'Before Food'
+                      : 'Anytime'}
+                  </span>
+                </div>
+              </div>
+
+              {item.doseInstructions && (
+                <div className="bg-white/90 rounded-2xl p-3.5 border border-rose-100 text-xs">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">
+                    Doctor's Instructions & Notes
+                  </span>
+                  <p className="text-slate-800 font-medium">{item.doseInstructions}</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -589,6 +623,15 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Medicine Dose Editing Modal */}
+      {item && (
+        <MedicineDoseModal
+          item={item}
+          isOpen={isDoseModalOpen}
+          onClose={() => setIsDoseModalOpen(false)}
+        />
       )}
 
       {/* Edit Product Modal */}
